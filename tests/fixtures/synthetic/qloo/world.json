@@ -1,0 +1,318 @@
+{
+  "_synthetic": true,
+  "entities": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Harbor Deli",
+      "type": "urn:entity:place",
+      "popularity": 0.97,
+      "ageFit": {
+        "25_to_29": 0.8,
+        "55_and_older": 0.3
+      },
+      "city": "New York",
+      "metro": "New York City",
+      "disambiguation": "1 Fake St, New York"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Harbor Deli",
+      "type": "urn:entity:place",
+      "popularity": 0.99,
+      "ageFit": {
+        "25_to_29": 0.5,
+        "55_and_older": 0.5
+      },
+      "city": "Portland",
+      "metro": "Portland",
+      "disambiguation": "2 Fake Ave, Portland"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "name": "Corner Pizza House",
+      "type": "urn:entity:place",
+      "popularity": 0.98,
+      "ageFit": {
+        "25_to_29": 0.5,
+        "55_and_older": 0.85
+      },
+      "city": "Brooklyn",
+      "metro": "New York City",
+      "disambiguation": "Brooklyn branch"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "name": "Corner Pizza House",
+      "type": "urn:entity:place",
+      "popularity": 0.96,
+      "ageFit": {
+        "25_to_29": 0.5,
+        "55_and_older": 0.85
+      },
+      "city": "Queens",
+      "metro": "New York City",
+      "disambiguation": "Queens branch"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "name": "Demo Burger Stand",
+      "type": "urn:entity:place",
+      "popularity": 0.97,
+      "ageFit": {
+        "25_to_29": 0.7,
+        "55_and_older": 0.45
+      },
+      "city": "New York",
+      "metro": "New York City"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "name": "Sample Bakery",
+      "type": "urn:entity:place",
+      "popularity": 0.96,
+      "ageFit": {
+        "25_to_29": 0.6,
+        "55_and_older": 0.7
+      },
+      "city": "New York",
+      "metro": "New York City"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "name": "Test Smokehouse",
+      "type": "urn:entity:place",
+      "popularity": 0.95,
+      "ageFit": {
+        "25_to_29": 0.55,
+        "55_and_older": 0.8
+      },
+      "omit": true,
+      "city": "New York",
+      "metro": "New York City"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "name": "Demo Series One",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.92,
+      "ageFit": {
+        "25_to_29": 0.85,
+        "55_and_older": 0.35
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "name": "Demo Series Two",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.95,
+      "ageFit": {
+        "25_to_29": 0.75,
+        "55_and_older": 0.4
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013",
+      "name": "Demo Series Three",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.91,
+      "ageFit": {
+        "25_to_29": 0.65,
+        "55_and_older": 0.6
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000014",
+      "name": "Demo Series Four",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.94,
+      "ageFit": {
+        "25_to_29": 0.55,
+        "55_and_older": 0.75
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000015",
+      "name": "Demo Series Five",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.91,
+      "ageFit": {
+        "25_to_29": 0.45,
+        "55_and_older": 0.8
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000016",
+      "name": "Demo Series Three",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.3,
+      "ageFit": {
+        "25_to_29": 0.5,
+        "55_and_older": 0.5
+      },
+      "disambiguation": "unrelated low-popularity namesake"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000017",
+      "name": "Demo Series Six",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.4,
+      "ageFit": {
+        "25_to_29": 0.5,
+        "55_and_older": 0.5
+      },
+      "disambiguation": "only a low-popularity namesake exists"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000018",
+      "name": "Synthetic Drama",
+      "type": "urn:entity:tv_show",
+      "popularity": 0.9,
+      "disambiguation": "chip fixture"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000021",
+      "name": "Sample Apparel",
+      "type": "urn:entity:brand",
+      "popularity": 0.95,
+      "ageFit": {
+        "25_to_29": 0.8,
+        "55_and_older": 0.4
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000022",
+      "name": "Demo Outfitters",
+      "type": "urn:entity:brand",
+      "popularity": 0.97,
+      "ageFit": {
+        "25_to_29": 0.7,
+        "55_and_older": 0.5
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000023",
+      "name": "Mock Sneakers",
+      "type": "urn:entity:brand",
+      "popularity": 0.93,
+      "ageFit": {
+        "25_to_29": 0.6,
+        "55_and_older": 0.65
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000024",
+      "name": "Test Cosmetics",
+      "type": "urn:entity:brand",
+      "popularity": 0.96,
+      "ageFit": {
+        "25_to_29": 0.5,
+        "55_and_older": 0.75
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000025",
+      "name": "Placeholder Optics",
+      "type": "urn:entity:brand",
+      "popularity": 0.94,
+      "ageFit": {
+        "25_to_29": 0.4,
+        "55_and_older": 0.85
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000026",
+      "name": "Imaginary Boutique",
+      "type": "urn:entity:brand",
+      "popularity": 0.9
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000027",
+      "name": "Fictional Jewelers",
+      "type": "urn:entity:brand",
+      "popularity": 0.88
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000031",
+      "name": "Placeholder Atlas: A Subtitled Edition",
+      "type": "urn:entity:book",
+      "popularity": 0.89,
+      "ageFit": {
+        "25_to_29": 0.82,
+        "55_and_older": 0.4
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000032",
+      "name": "Demo Chronicles",
+      "type": "urn:entity:book",
+      "popularity": 0.92,
+      "ageFit": {
+        "25_to_29": 0.72,
+        "55_and_older": 0.52
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000033",
+      "name": "Mock Almanac",
+      "type": "urn:entity:book",
+      "popularity": 0.9,
+      "ageFit": {
+        "25_to_29": 0.6,
+        "55_and_older": 0.6
+      },
+      "noAffinity": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000034",
+      "name": "Sample Memoir &amp; Notes",
+      "type": "urn:entity:book",
+      "popularity": 0.91,
+      "ageFit": {
+        "25_to_29": 0.62,
+        "55_and_older": 0.66
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000035",
+      "name": "Test Handbook",
+      "type": "urn:entity:book",
+      "popularity": 0.88,
+      "ageFit": {
+        "25_to_29": 0.52,
+        "55_and_older": 0.78
+      },
+      "rawAffinity": 1.7
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000041",
+      "name": "Synthetic Singer",
+      "type": "urn:entity:artist",
+      "popularity": 0.9
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000042",
+      "name": "Demo Band",
+      "type": "urn:entity:artist",
+      "popularity": 0.85
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000043",
+      "name": "Fake Folk Duo",
+      "type": "urn:entity:artist",
+      "popularity": 0.8
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000044",
+      "name": "Synthetic Singer",
+      "type": "urn:entity:artist",
+      "popularity": 0.2,
+      "disambiguation": "namesake with low popularity"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000045",
+      "name": "Demo Band",
+      "type": "urn:entity:artist",
+      "popularity": null
+    }
+  ]
+}

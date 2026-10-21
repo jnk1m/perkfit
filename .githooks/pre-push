@@ -1,0 +1,7 @@
+#!/bin/sh
+# 1. time window  2. repository hygiene on all files and on the full history
+set -e
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+.githooks/time-gate
+node scripts/check-repo.mjs --all --history

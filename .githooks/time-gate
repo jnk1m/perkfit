@@ -1,0 +1,17 @@
+#!/bin/sh
+# Rejects commits and pushes on weekdays before 18:00 KST.
+# Optional test arguments: time-gate <weekday 1-7> <hour 0-23>. Hooks call it without arguments.
+if [ $# -ge 2 ]; then
+  dow="$1"
+  hour="$2"
+else
+  dow=$(TZ=Asia/Seoul date +%u)
+  hour=$(TZ=Asia/Seoul date +%H)
+fi
+hour=${hour#0}
+hour=${hour:-0}
+if [ "$dow" -le 5 ] && [ "$hour" -lt 18 ]; then
+  echo "time-gate: blocked. Commits and pushes are allowed on weekends or after 18:00 KST (now: weekday ${dow}, hour ${hour} KST)." >&2
+  exit 1
+fi
+exit 0

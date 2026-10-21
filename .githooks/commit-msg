@@ -1,0 +1,6 @@
+#!/bin/sh
+# Rule R6: no tool trailers in the message, no banned author identity.
+set -e
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+node scripts/check-repo.mjs --commit-msg "$1"

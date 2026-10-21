@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #faf7f0;
+  --color-ink: #1c1917;
+  --color-qloo: #0f766e;
+  --color-assume: #b45309;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+}
+
+body {
+  background: #faf7f0;
+  color: #1c1917;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid #1c1917;
+  outline-offset: 2px;
+}
+
+/* SAMPLE badge and sample-data rows: diagonal hatching so synthetic values never read as Qloo results. */
+.hatch {
+  background-image: repeating-linear-gradient(135deg, rgb(28 25 23 / 0.22) 0 2px, transparent 2px 6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

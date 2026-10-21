@@ -1,0 +1,12 @@
+#!/bin/sh
+# 1. time window  2. gitleaks on staged changes  3. repository hygiene on staged files
+set -e
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+.githooks/time-gate
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed; refusing to commit without a secret scan." >&2
+  exit 1
+fi
+gitleaks git --staged --redact --no-banner --config .gitleaks.toml
+node scripts/check-repo.mjs --staged
