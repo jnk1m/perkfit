@@ -7,7 +7,8 @@ function CompareCard({ card, children }: { card?: CardVm; children?: React.React
       <h3 className="font-display text-base font-semibold">{card?.title}</h3>
       {card && (
         <>
-          <ul className="mt-2 space-y-0.5 tabular-nums">{card.lines.map((l) => <li key={l}>{l}</li>)}</ul>
+          <p className="mt-2 font-semibold">{card.headline}</p>
+          <ul className="mt-2 space-y-0.5 text-xs tabular-nums">{card.lines.map((l) => <li key={l}>{l}</li>)}</ul>
           {card.added.length > 0 && <p className="mt-2"><span className="font-semibold">Added:</span> {card.added.join(', ')}</p>}
           {card.dropped.length > 0 && <p><span className="font-semibold">Dropped:</span> {card.dropped.join(', ')}</p>}
           {card.note && <p className="mt-2 text-xs text-ink/75">{card.note}</p>}
@@ -36,7 +37,7 @@ export function ComparePanel({
         <CompareCard card={cards.llm} />
       ) : (
         <CompareCard>
-          <h3 className="font-display text-base font-semibold">LLM alone</h3>
+          <h3 className="font-display text-base font-semibold">A general AI with no Qloo data</h3>
           <p className="mt-2 text-ink/80">
             {cards.llmState === 'failed' ? 'Baseline unavailable this run.' : !llmRequested ? 'Not requested for this run.' : running ? 'Waiting for the LLM baseline…' : 'No LLM baseline for this run.'}
           </p>
@@ -47,7 +48,7 @@ export function ComparePanel({
         <CompareCard card={cards.swap} />
       ) : (
         <CompareCard>
-          <h3 className="font-display text-base font-semibold">Swap segment</h3>
+          <h3 className="font-display text-base font-semibold">Different segment</h3>
           {compare.phase === 'loading' && <p className="mt-2 text-ink/80" aria-live="polite">Comparing with the other example…</p>}
           {compare.phase === 'error' && (
             <div role="alert" className="mt-2">

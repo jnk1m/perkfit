@@ -1,5 +1,6 @@
 import type { Headline } from '@/lib/types';
 import type { Bundle, EngineConfig, PerkScore } from './types';
+import { diffBundles } from './compare';
 import { cmpStr, sum } from './util';
 
 const usd = (x: number): string => `$${String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
@@ -29,34 +30,48 @@ export function buildHeadline(
   const saveLow = sum(K.map((p) => p.scn.pessimistic.monthlyCost));
   const saveHigh = sum(K.map((p) => p.scn.optimistic.monthlyCost));
   const saveFixedPart = sum(K.filter((p) => p.billing === 'fixed').map((p) => p.scn.base.monthlyCost));
-  const common = { n: N, lowFitTotal: L, skippedIds: skipped.map((p) => p.candidateId), saveBase, saveLow, saveHigh, saveFixedPart };
+  const bundleCount = base.perkIds.length;
+  const bundleCost = base.totalCost;
+  const swapCount = diffBundles(base.perkIds, baseline.perkIds).n;
+  const common = {
+    n: N, lowFitTotal: L, skippedIds: skipped.map((p) => p.candidateId), saveBase, saveLow, saveHigh, saveFixedPart,
+    bundleCount, bundleCost, swapCount,
+  };
 
-  if (perks.length === 0 || base.perkIds.length === 0) {
+  if (perks.length === 0) {
     return {
       ...common,
       kind: 'insufficient',
-      text: `Not enough Qloo data to judge (${perks.length} of ${totalCandidates} candidates scored)`,
+      text: `Not enough Qloo data to judge (0 of ${totalCandidates} candidates scored)`,
       subtitle: '',
     };
   }
-  if (L === 0) {
-    return { ...common, kind: 'same', text: 'No low-fit perks among the scored candidates', subtitle: '' };
+  if (bundleCount === 0) {
+    const cheapest = Math.min(...perks.map((p) => p.scn.base.monthlyCost));
+    return {
+      ...common,
+      kind: 'insufficient',
+      text: `No perk fits a ${usd(budget)}/month budget`,
+      subtitle: `The cheapest scored perk costs about ${usd(cheapest)}/month at assumed usage; ${perks.length} of ${totalCandidates} candidates were scored.`,
+    };
   }
-  if (N === 0) {
-    const all = L === 1 ? 'the 1 low-fit perk is' : `all ${L} low-fit perks are`;
-    return { ...common, kind: 'same', text: `Nothing to skip: ${all} in the optimized bundle`, subtitle: '' };
+  const text = `Fund these ${bundleCount} perk${bundleCount === 1 ? '' : 's'} for ${usd(bundleCost)} of ${usd(budget)}/month`;
+  if (L === 0 || N === 0) {
+    const subtitle = swapCount === 0
+      ? 'Popularity order lands on the same bundle.'
+      : `Picking by popularity would swap ${swapCount} of them.`;
+    return { ...common, kind: 'same', text, subtitle };
   }
-  const text = `Skip ${N} low-fit perk${N === 1 ? '' : 's'}`;
   if (K.length === 0) {
     return {
       ...common,
       kind: 'all_in',
       text,
-      subtitle: `A popularity-ordered bundle avoids them too; ${L} of ${perks.length} candidates are low fit for this segment`,
+      subtitle: `Picking by popularity would swap ${swapCount} of them; it also avoids the ${L} low-fit perks.`,
     };
   }
   const subtitle =
-    `A popularity-ordered bundle would spend about ${usd(saveBase)} of ${usd(budget)} on ${K.length} of them ` +
-    `(range ${usd(saveLow)} to ${usd(saveHigh)}; fixed-fee ${usd(saveFixedPart)})`;
+    `Picking by popularity would swap ${swapCount} of them and put about ${usd(saveBase)} into perks with low taste fit for this segment ` +
+    `(range ${usd(saveLow)} to ${usd(saveHigh)}).`;
   return { ...common, kind: saveBase < cfg.smallSavingRatio * budget ? 'skip_small' : 'skip', text, subtitle };
 }

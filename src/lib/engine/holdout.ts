@@ -14,13 +14,13 @@ export function buildHoldout(
     return {
       candidateId: id,
       tier: p.tier,
-      hypothesis: `Test whether offering ${p.name} to ${segmentLabel} changes usage versus a holdout group. Taste fit (${p.tier}) is a hypothesis, not a result.`,
+      hypothesis: `Does offering ${p.name} raise usage for ${segmentLabel}? Compare with a ${Math.round(cfg.holdout.share * 100)}% group that doesn't get it. Taste match (${p.tier}) is a hypothesis, not a result.`,
       holdoutShare: cfg.holdout.share,
       holdoutMembers: Math.round(members * cfg.holdout.share),
       weeks: cfg.holdout.weeks,
-      metric: 'usage rate difference versus holdout',
+      metric: 'usage vs. held-back group',
       roiFormula: '(incremental revenue - cost) / cost',
-      successRule: 'incremental ROI > 0',
+      successRule: 'extra value exceeds cost',
     };
   });
 }

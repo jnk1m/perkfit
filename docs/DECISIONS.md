@@ -22,10 +22,16 @@ Short record of the choices that shape PerkFit. Numbers marked TODO are filled f
 10. Daily limits are counted in Upstash Redis. Without it, custom live runs and search are disabled and examples still work.
 11. Qloo entity ids are not stored in this repository. The server attaches them from private configuration, and the browser only sees names and opaque tokens.
 
+## Result screen
+
+12. The headline leads with what to fund (`Fund these N perks for $X of $B/month`) and keeps the popularity contrast on the second line. An earlier version led with `Skip N low-fit perks`, which named the discarded perks instead of the recommendation and read as a small saving.
+13. After a run the input sections collapse to a one-line summary and the result moves to the top. Evidence (Why rows, holdout plan, what-if cards, agent trace) starts collapsed.
+14. Expected revenue, ROI and discount terms are not shown. They would require data the tool does not have, so they stay in the "not validated" list rather than on screen.
+
 ## Repository safety
 
-12. Secrets live in `.env.local` and the hosting provider only. Server modules import `server-only`, and a build check fails if secret names or hosts reach the client bundle.
-13. Hooks and CI run a secret scan and a repository check for stray Qloo-shaped data, blocked paths and commit message trailers. The word list used by that check is kept outside the repository.
+15. Secrets live in `.env.local` and the hosting provider only. Server modules import `server-only`, and a build check fails if secret names or hosts reach the client bundle.
+16. Hooks and CI run a secret scan and a repository check for stray Qloo-shaped data, blocked paths and commit message trailers. The word list used by that check is kept outside the repository.
 
 ## AI assistance
 

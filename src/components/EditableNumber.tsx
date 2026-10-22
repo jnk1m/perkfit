@@ -8,9 +8,9 @@ import { parseEdit, type EditKind } from '@/lib/ui/validate';
  * visible until the next valid edit or Esc.
  */
 export function EditableNumber({
-  value, kind, label, onCommit, format = (n) => String(n), className = 'w-24',
+  value, kind, label, onCommit, format = (n) => String(n), className = 'w-24', edited = false,
 }: {
-  value: number; kind: EditKind; label: string; onCommit: (v: number) => void; format?: (n: number) => string; className?: string;
+  value: number; kind: EditKind; label: string; onCommit: (v: number) => void; format?: (n: number) => string; className?: string; edited?: boolean;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function EditableNumber({
           if (e.key === 'Enter') e.currentTarget.blur();
           if (e.key === 'Escape') { cancelled.current = true; setDraft(null); setError(null); e.currentTarget.blur(); }
         }}
-        className={`${className} h-11 border-0 border-b border-dotted border-assume bg-transparent px-1 text-right tabular-nums md:h-8`}
+        className={`${className} h-11 border-0 border-b border-dotted border-assume bg-transparent px-1 text-right tabular-nums md:h-8${edited ? ' ring-1 ring-assume' : ''}`}
       />
       {error && <span id={errId} role="alert" className="block max-w-48 text-xs text-assume">{error}</span>}
     </span>

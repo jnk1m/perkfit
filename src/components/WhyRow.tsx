@@ -2,10 +2,17 @@ import type { SentenceVm, WhyRowVm } from '@/lib/ui/viewModel';
 import { Badge } from './Badge';
 import { SafeUseNote } from './SafeUseNote';
 
-export function WhyRow({ rows, sentence }: { rows: WhyRowVm[]; sentence: SentenceVm }) {
+export function WhyRow({ rows, sentence, lead = [] }: { rows: WhyRowVm[]; sentence: SentenceVm; lead?: { label: string; value: string }[] }) {
   return (
     <div className="border-l-2 border-ink/40 bg-white/40 p-3">
       <ul className="divide-y divide-ink/10 text-sm">
+        {lead.map((l) => (
+          <li key={l.label} className="grid grid-cols-[5.5rem_1fr_auto] items-baseline gap-x-3 py-1">
+            <span aria-hidden />
+            <span>{l.label}</span>
+            <span className="text-right tabular-nums">{l.value}</span>
+          </li>
+        ))}
         {rows.map((r) => (
           <li key={r.key} className="grid grid-cols-[5.5rem_1fr_auto] items-baseline gap-x-3 py-1">
             <span><Badge kind={r.badge} /></span>

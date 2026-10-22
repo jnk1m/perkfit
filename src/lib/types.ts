@@ -126,6 +126,12 @@ export interface Headline {
   saveLow: number;
   saveHigh: number;
   saveFixedPart: number;
+  /** perks in the base bundle */
+  bundleCount: number;
+  /** monthly cost of the base bundle */
+  bundleCost: number;
+  /** base-bundle perks missing from the popularity bundle */
+  swapCount: number;
   text: string;
   subtitle: string;
 }

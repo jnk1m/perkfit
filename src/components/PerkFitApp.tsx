@@ -19,9 +19,12 @@ import { ErrorBox } from './ErrorBox';
 import { Header } from './Header';
 import { Headline } from './Headline';
 import { HoldoutCard } from './HoldoutCard';
+import { InputSummaryBar } from './InputSummaryBar';
+import { QlooSignals } from './QlooSignals';
 import { RunProgress } from './RunProgress';
 import { SafeUseNote } from './SafeUseNote';
 import { Section } from './Section';
+import { Summary } from './Summary';
 import { ScenarioTable, SpendBar } from './SpendBar';
 import { SegmentPanel } from './SegmentPanel';
 
@@ -55,7 +58,9 @@ export function PerkFitApp({
     { mode: liveAvailable ? ('live' as const) : ('sample' as const), custom: EMPTY_CUSTOM, budget: defaultBudget, members: defaultMembers, usage: DEFAULTS.tierUsage },
     initialState,
   );
-  const [openWhy, setOpenWhy] = useState<string | null | undefined>(undefined);
+  const [openWhy, setOpenWhy] = useState<string | null>(null);
+  const [inputsOpen, setInputsOpen] = useState(true);
+  const resultRef = useRef<HTMLDivElement | null>(null);
   const runIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -88,8 +93,21 @@ export function PerkFitApp({
   const rows = useMemo(() => candidateRows(input, shown?.scores ?? null, vm?.result ?? null), [input, shown, vm]);
   const sampleView = state.mode === 'sample' || shown?.meta?.dataSource === 'sample';
   const qlooBadge = sampleView ? 'sample' : 'qloo';
-  const effectiveOpen = openWhy === undefined ? (vm?.bundle[0]?.id ?? null) : openWhy;
+  const effectiveOpen = openWhy;
   const failedDomains = shown?.domainStatus ? (Object.keys(shown.domainStatus) as Domain[]).filter((d) => shown.domainStatus?.[d] === 'failed') : [];
+
+  // A new result folds the inputs into one line (state adjusted during render) and scrolls to it once per run.
+  const shownRunId = shown?.runId;
+  const [foldedRunId, setFoldedRunId] = useState<number | undefined>(undefined);
+  if (shownRunId !== undefined && shownRunId !== foldedRunId) {
+    setFoldedRunId(shownRunId);
+    setInputsOpen(false);
+  }
+  useEffect(() => {
+    if (shownRunId === undefined) return;
+    const id = requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return () => cancelAnimationFrame(id);
+  }, [shownRunId]);
 
   // ---- actions ---------------------------------------------------------------------------------------
   async function startCompare(runId: number, runSegment: Segment) {
@@ -154,7 +172,8 @@ export function PerkFitApp({
 
   const noChips = segment.interests.length === 0;
   const blockedReason = noChips ? 'Add at least one interest chip.' : state.mode === 'live' && !liveAvailable ? 'Live mode is not available here. Switch to sample mode.' : null;
-  const runLabel = stale && shown && !segmentChanged ? 'Re-run (refreshes AI text)' : `Run with ${segment.label}`;
+  const runLabel = stale && shown && !segmentChanged ? 'Run again' : `Run with ${segment.label}`;
+  const showInputs = inputsOpen || !shown;
   const dim = segmentChanged || (running && state.current !== shown);
 
   return (
@@ -172,33 +191,46 @@ export function PerkFitApp({
         </p>
         {sampleView && <Banner>{SAMPLE_BANNER}</Banner>}
 
-        <Section id="input" n={1} title="Segment">
-          <SegmentPanel
-            segment={segment}
-            active={state.active}
-            onSelect={select}
-            onChange={(next) => dispatch({ type: 'edit_custom', segment: { ...next, id: 'custom', label: 'Custom segment' } })}
-          />
-        </Section>
+        {showInputs ? (
+          <>
+          <Section id="input" n={1} title="Who">
+            <SegmentPanel
+              segment={segment}
+              active={state.active}
+              onSelect={select}
+              onChange={(next) => dispatch({ type: 'edit_custom', segment: { ...next, id: 'custom', label: 'Custom segment' } })}
+            />
+          </Section>
 
-        <Section id="perks" n={2} title={`Partner perks (${cands.length})`}>
-          <CandidateTable rows={rows} qlooBadge={qlooBadge} onEdit={(id, override) => dispatch({ type: 'edit_candidate', id, override })} />
-        </Section>
+          <Section id="perks" n={2} title={`Candidate perks (${cands.length})`}>
+            <CandidateTable rows={rows} qlooBadge={qlooBadge} onEdit={(id, override) => dispatch({ type: 'edit_candidate', id, override })} />
+          </Section>
 
-        <Section id="budget" n={3} title="Budget and run">
-          <BudgetPanel
-            budget={state.budget} members={state.members} usage={state.usage} weights={state.weights} includeLlm={state.includeLlm}
-            running={running} canRun={blockedReason === null} blockedReason={blockedReason} runLabel={runLabel}
-            onBudget={(v) => dispatch({ type: 'set_budget', value: v })} onMembers={(v) => dispatch({ type: 'set_members', value: v })}
-            onUsage={(t, v) => dispatch({ type: 'set_usage', tier: t, value: v })} onWeight={(d, v) => dispatch({ type: 'set_weight', domain: d, value: v })}
-            onIncludeLlm={(v) => dispatch({ type: 'set_include_llm', value: v })} onRun={() => void run()}
+          <Section id="budget" n={3} title="Budget">
+            <BudgetPanel
+              budget={state.budget} members={state.members} usage={state.usage} weights={state.weights} includeLlm={state.includeLlm}
+              running={running} canRun={blockedReason === null} blockedReason={blockedReason} runLabel={runLabel}
+              onBudget={(v) => dispatch({ type: 'set_budget', value: v })} onMembers={(v) => dispatch({ type: 'set_members', value: v })}
+              onUsage={(t, v) => dispatch({ type: 'set_usage', tier: t, value: v })} onWeight={(d, v) => dispatch({ type: 'set_weight', domain: d, value: v })}
+              onIncludeLlm={(v) => dispatch({ type: 'set_include_llm', value: v })} onRun={() => void run()}
+            />
+          </Section>
+          </>
+        ) : (
+          <InputSummaryBar
+            segmentName={segment.id === 'custom' ? segment.label : segment.label.split(':')[0]}
+            perks={cands.length}
+            budget={state.budget}
+            members={state.members}
+            onEdit={() => setInputsOpen(true)}
           />
-          <div className="mt-4 space-y-3">
-            <RunProgress stages={state.stages} visible={running} />
-            {state.ask && <AskUser ask={state.ask} onAnswer={answer} />}
-            {state.error && <ErrorBox error={state.error} onRetry={() => void run()} onSample={() => dispatch({ type: 'set_mode', mode: 'sample' })} />}
-          </div>
-        </Section>
+        )}
+
+        <div className="space-y-3">
+          <RunProgress stages={state.stages} visible={running} />
+          {state.ask && <AskUser ask={state.ask} onAnswer={answer} />}
+          {state.error && <ErrorBox error={state.error} onRetry={() => void run()} onSample={() => dispatch({ type: 'set_mode', mode: 'sample' })} />}
+        </div>
 
         {segmentChanged && <Banner tone="assume">Segment changed. Press Run.</Banner>}
         {stale && !segmentChanged && <Banner tone="assume">{STALE_NOTE}</Banner>}
@@ -210,23 +242,30 @@ export function PerkFitApp({
         )}
 
         <div className={dim ? 'space-y-8 opacity-50' : 'space-y-8'}>
-          <Section id="result" n={4} title="Result">
-            {vm ? (
-              <>
-                <Headline vm={vm.headline} />
-                <SpendBar spend={vm.spend} />
-                <ScenarioTable rows={vm.scenarios} showSaved={vm.headline.range !== null} />
-              </>
-            ) : (
-              <p className="text-sm text-ink/80">{running ? 'Scoring…' : 'Press Run to score the perks for this segment.'}</p>
-            )}
-          </Section>
+          <div ref={resultRef} className="scroll-mt-24">
+            <Section id="result" n={4} title="Result">
+              {vm ? (
+                <div className="space-y-5">
+                  {vm.summary && <Summary summary={vm.summary} />}
+                  <Headline vm={vm.headline} />
+                  <QlooSignals chips={segment.interests.length} perks={cands.length} categories={new Set(cands.map((c) => c.domain)).size} meta={shown?.meta ?? null} />
+                  <SpendBar spend={vm.spend} />
+                  <details className="text-sm">
+                    <summary className="cursor-pointer font-semibold">Usage cases</summary>
+                    <ScenarioTable rows={vm.scenarios} showSaved />
+                    {vm.sensitivity && <p className="mt-2 text-ink/85">{vm.sensitivity}</p>}
+                  </details>
+                </div>
+              ) : (
+                <p className="text-sm text-ink/80">{running ? 'Scoring…' : `Results appear here. Press Run to rank the perks for ${segment.label}.`}</p>
+              )}
+            </Section>
+          </div>
 
           {vm && (
             <>
-              <Section id="why" n={5} title="Bundle">
+              <Section id="why" n={5} title="Best bundle">
                 <BundleTable rows={vm.bundle} openId={effectiveOpen} onToggle={(id) => setOpenWhy(effectiveOpen === id ? null : id)} qlooBadge={qlooBadge} />
-                {vm.skipped.length > 0 && <p className="mt-3 text-sm"><span className="font-semibold">Skipped: popular, low taste fit.</span> {vm.skipped.join(', ')}</p>}
                 {vm.onHold.length > 0 && (
                   <p className="mt-1 text-sm">
                     <span className="font-semibold">On hold: no Qloo data. Nothing fills the gap.</span> {vm.onHold.map((h) => `${h.name} (${h.why})`).join(', ')}
@@ -234,11 +273,11 @@ export function PerkFitApp({
                 )}
               </Section>
 
-              <Section id="holdout" n={6} title="Holdout plan">
-                <HoldoutCard rows={vm.holdout} />
+              <Section id="holdout" n={6} title="How to test it" collapsible hint="Hide each perk from a small group and compare usage.">
+                <HoldoutCard rows={vm.holdout} intro={vm.holdoutIntro} />
               </Section>
 
-              <Section id="compare" n={7} title="Compare">
+              <Section id="compare" n={7} title="What-if" collapsible hint="Popularity order, a general AI, another segment.">
                 <ComparePanel
                   cards={vm.cards}
                   compare={state.compare}
@@ -252,7 +291,10 @@ export function PerkFitApp({
           )}
         </div>
 
-        <AgentTrace steps={shown?.trace} />
+        <AgentTrace
+          steps={shown?.trace}
+          summary={shown?.meta ? `${shown.meta.agentSteps} steps · ${shown.meta.qlooCalls} Qloo calls · explanations ${shown.meta.explanations.passed}/${shown.meta.explanations.total}` : undefined}
+        />
         <SafeUseNote variant="footer" />
       </main>
     </>

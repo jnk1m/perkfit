@@ -1,9 +1,9 @@
 import type { AgentTraceStep } from '@/lib/types';
 
-export function AgentTrace({ steps }: { steps: AgentTraceStep[] | undefined }) {
+export function AgentTrace({ steps, summary }: { steps: AgentTraceStep[] | undefined; summary?: string }) {
   return (
     <details className="border-t border-ink/30 pt-3 text-sm">
-      <summary className="cursor-pointer font-semibold">Agent trace</summary>
+      <summary className="cursor-pointer font-semibold">Agent trace{summary && <span className="ml-2 font-normal text-ink/80">{summary}</span>}</summary>
       {steps && steps.length > 0 ? (
         <div className="mt-2 overflow-x-auto">
           <table className="w-full text-left text-xs">

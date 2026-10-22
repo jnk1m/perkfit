@@ -31,7 +31,7 @@ describe('percentile tiers', () => {
 describe('headline kinds', () => {
   it('same when every low-fit perk is in the bundle (budget is large)', () => {
     const r = runEngine(exampleInput({ budget: 10_000 }), EXAMPLE_SCORES);
-    expect(r.headline).toMatchObject({ kind: 'same', n: 0, lowFitTotal: 2, text: 'Nothing to skip: all 2 low-fit perks are in the optimized bundle' });
+    expect(r.headline).toMatchObject({ kind: 'same', n: 0, lowFitTotal: 2, text: expect.stringMatching(/^Fund these \d+ perks for \$[\d,]+ of \$10,000\/month$/) });
   });
   it('all_in when the baseline bundle avoids the low-fit perks too', () => {
     // P3 fixed cost becomes 500 (> budget), so the baseline skips it; baseline = P1, P2, B1 (230), B2 no longer fits.
@@ -39,8 +39,7 @@ describe('headline kinds', () => {
     const r = runEngine(exampleInput({ candidates: cs }), EXAMPLE_SCORES);
     expect(r.baseline.perkIds).toEqual(['B1', 'P1', 'P2']);
     expect(r.headline).toMatchObject({ kind: 'all_in', n: 2, lowFitTotal: 2, skippedIds: ['B2', 'P3'], saveBase: 0 });
-    expect(r.headline.text).toBe('Skip 2 low-fit perks');
-    expect(r.headline.subtitle).toBe('A popularity-ordered bundle avoids them too; 2 of 5 candidates are low fit for this segment');
+    expect(r.headline.subtitle).toBe(`Picking by popularity would swap ${r.headline.swapCount} of them; it also avoids the 2 low-fit perks.`);
   });
   it('same when there is no low-fit perk', () => {
     const r = runEngine(inputOf([cand('A', 'A', 'place', 1)]), [score('A', 0.5, 0.5)]);
@@ -54,7 +53,7 @@ describe('headline kinds', () => {
     const r = runEngine(exampleInput({ candidates: cs, domainWeights: { place: 0 } }), EXAMPLE_SCORES);
     expect(r.headline).toMatchObject({ kind: 'skip_small', n: 1, lowFitTotal: 2, skippedIds: ['P3'] });
     expect(r.headline.saveBase).toBeLessThan(2.5);
-    expect(r.headline.text).toBe('Skip 1 low-fit perk');
+    expect(r.headline.subtitle).toMatch(/^Picking by popularity would swap \d+ of them and put about \$\d+ into perks with low taste fit for this segment \(range \$\d+ to \$\d+\)\.$/);
   });
   it('insufficient when nothing is scored', () => {
     const r = runEngine(exampleInput(), EXAMPLE_CANDIDATES.map((c) => score(c.id, null, null, 'no_data')));
@@ -68,6 +67,8 @@ describe('headline kinds', () => {
   it('insufficient when the bundle is empty because the budget is below every cost', () => {
     const r = runEngine(exampleInput({ budget: 5 }), EXAMPLE_SCORES);
     expect(r.headline.kind).toBe('insufficient');
+    expect(r.headline.text).toBe('No perk fits a $5/month budget');
+    expect(r.headline.subtitle).toMatch(/^The cheapest scored perk costs about \$\d+\/month at assumed usage; 5 of 6 candidates were scored\.$/);
     expect(r.warnings).toContainEqual({ code: 'budget_below_unit' });
     expect(r.warnings.some((w) => w.code === 'over_budget_single')).toBe(true);
   });

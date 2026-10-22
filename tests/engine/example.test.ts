@@ -53,8 +53,11 @@ describe('worked example (02 section 12)', () => {
     expect(h.lowFitTotal).toBe(2);
     expect(h.skippedIds).toEqual(['B2', 'P3']);
     close(h.saveBase, 150); close(h.saveFixedPart, 100); close(h.saveLow, 137.5); close(h.saveHigh, 162.5);
-    expect(h.text).toBe('Skip 2 low-fit perks');
-    expect(h.subtitle).toBe('A popularity-ordered bundle would spend about $150 of $250 on 2 of them (range $138 to $163; fixed-fee $100)');
+    expect(h.bundleCount).toBe(run.bundle.byScenario.base.perkIds.length);
+    close(h.bundleCost, run.bundle.byScenario.base.totalCost);
+    expect(h.swapCount).toBe(run.compare.vsPopularity.diff.n);
+    expect(h.text).toBe('Fund these 3 perks for $230 of $250/month');
+    expect(h.subtitle).toBe('Picking by popularity would swap 1 of them and put about $150 into perks with low taste fit for this segment (range $138 to $163).');
   });
 
   it('comparison with the popularity baseline', () => {
@@ -73,8 +76,8 @@ describe('worked example (02 section 12)', () => {
 
   it('holdout rows follow the base bundle', () => {
     expect(run.holdout.map((h) => h.candidateId)).toEqual(['B1', 'P1', 'P2']);
-    expect(run.holdout[0]).toMatchObject({ holdoutShare: 0.1, holdoutMembers: 10, weeks: 4, successRule: 'incremental ROI > 0' });
-    expect(run.holdout[0].hypothesis).toContain('Test whether offering Echo Gear to Test segment changes usage');
+    expect(run.holdout[0]).toMatchObject({ holdoutShare: 0.1, holdoutMembers: 10, weeks: 4, successRule: 'extra value exceeds cost' });
+    expect(run.holdout[0].hypothesis).toContain('Does offering Echo Gear raise usage for Test segment? Compare with a 10% group');
   });
 
   it('warnings', () => {

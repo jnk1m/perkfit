@@ -1,5 +1,4 @@
 import type { BundleRowVm } from '@/lib/ui/viewModel';
-import { Badge } from './Badge';
 import { WhyRow } from './WhyRow';
 
 function WhyButton({ row, open, onToggle, prefix }: { row: BundleRowVm; open: boolean; onToggle: (id: string) => void; prefix: string }) {
@@ -17,7 +16,22 @@ function WhyButton({ row, open, onToggle, prefix }: { row: BundleRowVm; open: bo
   );
 }
 
-export function BundleTable({ rows, openId, onToggle, qlooBadge }: { rows: BundleRowVm[]; openId: string | null; onToggle: (id: string) => void; qlooBadge: 'qloo' | 'sample' }) {
+function whyLead(r: BundleRowVm) {
+  return [{ label: 'Holds up', value: r.stable }];
+}
+
+function Contrast({ row }: { row: BundleRowVm }) {
+  return (
+    <>
+      <span className="text-ink/75">{row.popularityRank ?? '—'}</span>
+      <span aria-hidden className="mx-1">→</span>
+      <span className="sr-only"> to taste match </span>
+      <span className="font-semibold"><span aria-hidden className="mr-1">{row.tierDots}</span>{row.tierLabel}</span>
+    </>
+  );
+}
+
+export function BundleTable({ rows, openId, onToggle }: { rows: BundleRowVm[]; openId: string | null; onToggle: (id: string) => void; qlooBadge?: 'qloo' | 'sample' }) {
   if (rows.length === 0) return <p className="text-sm">No perk fits this budget with the data we have.</p>;
   return (
     <>
@@ -26,11 +40,9 @@ export function BundleTable({ rows, openId, onToggle, qlooBadge }: { rows: Bundl
         <thead>
           <tr className="border-b-2 border-ink text-left text-xs uppercase tracking-wide text-ink/80 align-bottom">
             <th scope="col" className="py-2">Perk</th>
-            <th scope="col">Taste fit <Badge kind={qlooBadge} /> <Badge kind="calc" /></th>
-            <th scope="col" className="text-right">Within-domain percentile <Badge kind="calc" /></th>
-            <th scope="col" className="text-right">Monthly cost, base <Badge kind="assumption" /></th>
-            <th scope="col">Stable <Badge kind="calc" /></th>
-            <th scope="col"><span className="sr-only">Why</span></th>
+            <th scope="col">Popular → Taste match</th>
+            <th scope="col" className="text-right">Est. cost / month</th>
+            <th scope="col" className="text-right"><span className="sr-only">Why</span></th>
           </tr>
         </thead>
         <tbody className="tabular-nums">
@@ -46,13 +58,14 @@ export function BundleTable({ rows, openId, onToggle, qlooBadge }: { rows: Bundl
               <div>
                 <p className="font-semibold">{r.name}</p>
                 <p className="text-xs text-ink/75">{r.domain}</p>
-                <p className="mt-1 text-sm tabular-nums"><span aria-hidden>{r.tierDots}</span> Taste fit {r.tierLabel}</p>
+                <p className="mt-1 text-sm tabular-nums"><Contrast row={r} /></p>
+                {r.reason && <p className="text-xs text-ink/75">{r.reason}</p>}
                 <p className="text-sm tabular-nums">{r.cost}/month <span className="text-xs text-ink/75">({r.costRange})</span></p>
               </div>
               <WhyButton row={r} open={openId === r.id} onToggle={onToggle} prefix="m" />
             </div>
             {openId === r.id && (
-              <div id={`why-m-${r.id}`} className="mt-2"><WhyRow rows={r.why} sentence={r.sentence} /></div>
+              <div id={`why-m-${r.id}`} className="mt-2"><WhyRow rows={r.why} sentence={r.sentence} lead={whyLead(r)} /></div>
             )}
           </li>
         ))}
@@ -68,16 +81,15 @@ function BundleRows({ row, open, onToggle }: { row: BundleRowVm; open: boolean; 
         <th scope="row" className="py-2 text-left font-semibold">
           {row.name}
           <span className="block text-xs font-normal text-ink/75">{row.domain}</span>
+          {row.reason && <span className="block text-xs font-normal text-ink/75">{row.reason}</span>}
         </th>
-        <td><span aria-hidden className="mr-1">{row.tierDots}</span>{row.tierLabel}</td>
-        <td className="text-right">{row.percentile}</td>
+        <td><Contrast row={row} /></td>
         <td className="text-right">{row.cost}<span className="block text-xs text-ink/75">{row.costRange}</span></td>
-        <td>{row.stable}</td>
         <td className="text-right"><WhyButton row={row} open={open} onToggle={onToggle} prefix="d" /></td>
       </tr>
       {open && (
         <tr id={`why-d-${row.id}`} className="border-b border-ink/15">
-          <td colSpan={6} className="pb-3"><WhyRow rows={row.why} sentence={row.sentence} /></td>
+          <td colSpan={4} className="pb-3"><WhyRow rows={row.why} sentence={row.sentence} lead={whyLead(row)} /></td>
         </tr>
       )}
     </>
