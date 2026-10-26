@@ -2,7 +2,7 @@
 
 PerkFit helps perk programs, such as new fintech cards and membership apps with little purchase history, choose which partner perks to offer inside a fixed budget. It ranks candidate perks by how well each fits the taste of an audience segment, using Qloo taste data, and then picks the best bundle with a transparent calculation. Built for the Qloo Agentic Hackathon.
 
-Live demo: TODO (production URL)
+Live demo: https://perkfit.vercel.app
 
 ## Problem
 
@@ -70,9 +70,7 @@ Tests use a fake Qloo server and hand-written synthetic fixtures. No real Qloo r
 
 ## AI assistance
 
-Draft, to be made identical to the Devpost entry before submission.
-
-The idea, the product frame, the safety rules and every design decision are the author's. Claude (Anthropic) was used as a coding assistant throughout: it drafted the detailed design from the author's plan, wrote most of the implementation and tests under the author's review, and ran structured reviews of the result screen. The author reviewed and approved each stage, tested the application end to end, and is responsible for the submission. At run time the application calls Claude Opus 5.5 for the agent loop and the explanation templates; every sentence it writes is checked by code against the evidence ledger before it is shown.
+The problem framing, product decisions, safety rules and acceptance of every design and screen are the author's. Claude (Anthropic) worked as a coding assistant under that direction: drafting the design from the author's plan, writing most of the implementation and tests, and running structured reviews, with the author testing the result end to end and owning the submission. At run time the app calls Claude Opus 5.5 for the agent loop and explanation templates, and every sentence it writes is checked by code against the evidence ledger before it is shown.
 
 ## License
 
