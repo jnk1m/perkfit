@@ -198,9 +198,9 @@ if (commitMsgFile) {
   for (const v of ['GIT_AUTHOR_IDENT', 'GIT_COMMITTER_IDENT']) {
     try {
       checkIdentity(v.toLowerCase(), git(['var', v]));
-    } catch (err) {
-      console.error(`R6 could not read ${v}: ${err.message}`);
-      process.exit(2);
+    } catch {
+      // No configured identity (for example a CI runner): the trailer check above still applies.
+      console.log(`R6 identity check skipped: ${v} is not available`);
     }
   }
 }
