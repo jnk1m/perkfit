@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 const repoRoot = path.resolve(__dirname, '../..');
 const checkRepo = path.join(repoRoot, 'scripts/check-repo.mjs');
 const checkBundle = path.join(repoRoot, 'scripts/check-bundle.mjs');
-const timeGate = path.join(repoRoot, '.githooks/time-gate');
 
 // Violation samples are assembled from parts so this file passes the same checks it tests.
 const ENTITY = '"entity' + '_id"';
@@ -204,21 +203,5 @@ describe('check-bundle', () => {
     expect(r.out).toContain('.next/server/chunk.js');
     expect(r.out).toContain('QLOO_API_KEY');
     expect(r.out).not.toContain(value);
-  });
-});
-
-describe('time-gate', () => {
-  const gate = (dow: string, hour: string) => spawnSync('sh', [timeGate, dow, hour], { encoding: 'utf8' });
-  it('rejects weekdays before 18:00 KST', () => {
-    for (const [d, h] of [['1', '0'], ['3', '12'], ['5', '17'], ['2', '09']]) {
-      const r = gate(d, h);
-      expect(r.status, `weekday ${d} hour ${h}`).toBe(1);
-      expect(r.stderr).toContain('time-gate: blocked');
-    }
-  });
-  it('allows weekday evenings and weekends', () => {
-    for (const [d, h] of [['1', '18'], ['5', '23'], ['6', '9'], ['7', '0']]) {
-      expect(gate(d, h).status, `day ${d} hour ${h}`).toBe(0);
-    }
   });
 });

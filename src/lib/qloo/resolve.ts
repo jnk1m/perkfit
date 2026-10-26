@@ -114,6 +114,7 @@ let processKey: Buffer | undefined;
 function tokenKey(): Buffer {
   const secret = process.env.PERKFIT_SECRET;
   if (secret && secret.length >= 32) return createHash('sha256').update(secret).digest();
+  if (process.env.NODE_ENV === 'production') throw new Error('PERKFIT_SECRET is missing or shorter than 32 characters');
   processKey ??= randomBytes(32);
   return processKey;
 }

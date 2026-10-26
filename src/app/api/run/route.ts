@@ -3,7 +3,7 @@ import type { RunEvent, RunRequest } from '@/lib/api/types';
 import { apiError, jsonError } from '@/lib/ui/errors';
 import { runSample } from '@/lib/ui/sampleRunner';
 import { MAX_BODY_BYTES, firstIssue, runRequestSchema } from '@/lib/ui/schemas';
-import { clientIp, gateQuota, liveConfigured, liveRunner } from '@/lib/ui/serverSeams';
+import { clientIp, gateQuota, isPrecachedExample, liveConfigured, liveRunner } from '@/lib/ui/serverSeams';
 
 export const maxDuration = 60;
 
@@ -39,7 +39,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!liveConfigured()) {
       return jsonError(apiError('qloo_unavailable', 'Live mode is not available on this deployment. Switch to sample mode.'));
     }
-    const quota = await gateQuota('run', ip, { example: req.segment.id !== 'custom', includeLlm: req.includeLlm });
+    const quota = await gateQuota('run', ip, { example: isPrecachedExample(req), includeLlm: req.includeLlm });
     if (!quota.ok) return jsonError(quota.error);
     const live = liveRunner;
     runner = (emit, signal) => live(req, emit, { signal, ip });

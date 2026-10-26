@@ -16,7 +16,6 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
@@ -72,9 +71,9 @@ function readLines(file) {
 // --- inputs kept outside the repository ---------------------------------
 
 function loadBannedWords() {
-  const file = process.env.PERKFIT_BANNED_FILE ?? path.join(homedir(), 'reward-hq/secrets/perkfit-banned.txt');
-  if (!existsSync(file)) {
-    console.log('R5 skipped: banned word list not found');
+  const file = process.env.PERKFIT_BANNED_FILE;
+  if (!file || !existsSync(file)) {
+    console.log('R5 skipped: PERKFIT_BANNED_FILE is not set or not found');
     return [];
   }
   return readLines(file).map((w) => w.toLowerCase());

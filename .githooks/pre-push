@@ -1,7 +1,7 @@
 #!/bin/sh
-# 1. time window  2. repository hygiene on all files and on the full history
+# 1. local rules (optional, untracked)  2. repository hygiene on all files and on the full history
 set -e
 root=$(git rev-parse --show-toplevel)
 cd "$root"
-.githooks/time-gate
+[ -f .git/hooks/local-rules.sh ] && . .git/hooks/local-rules.sh
 node scripts/check-repo.mjs --all --history

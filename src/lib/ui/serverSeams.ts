@@ -3,12 +3,14 @@
  * UI layer touches those modules.
  */
 import 'server-only';
-import { EXAMPLE_SEGMENTS } from '@/data/candidates';
+import { DEFAULT_BUDGET, DEFAULT_MEMBERS, EXAMPLE_SEGMENTS } from '@/data/candidates';
+import { DEFAULT_CONFIG } from '@/lib/engine';
 import { runPerkFit } from '@/lib/agent';
 import { createQlooPort } from '@/lib/agent/qloo-port';
 import type { CompareRequest, CompareResponse, RunEvent, RunRequest, SearchResponse } from '@/lib/api/types';
 import { qlooEntriesFromDomainResults } from '@/lib/ledger';
 import { createAiSdkClient, getModel, getModelId } from '@/lib/llm';
+import { getClientIp } from '@/lib/ops/ip';
 import { checkQuota } from '@/lib/ops/quota';
 import { chipToken, createRunContext, getQlooService } from '@/lib/qloo';
 import type { SearchType } from '@/lib/qloo/types';
@@ -112,6 +114,29 @@ export async function searchEntities(q: string): Promise<SearchResponse['results
 }
 
 export function clientIp(req: Request): string {
-  const fwd = req.headers.get('x-forwarded-for');
-  return fwd ? fwd.split(',')[0].trim() : 'local';
+  return getClientIp(req.headers);
+}
+
+/**
+ * True only for an example segment at its default inputs: the one case the precache fully answers, so the run
+ * makes no Qloo or LLM call. Anything else (changed chips, costs, budget, usage, weights, answers) is counted
+ * against the daily limits even when the request keeps an example id.
+ */
+export function isPrecachedExample(req: RunRequest): boolean {
+  const ex = EXAMPLE_SEGMENTS.find((s) => s.id === req.segment.id);
+  if (!ex) return false;
+  const seg = req.segment;
+  const sameChips =
+    seg.interests.length === ex.interests.length &&
+    seg.interests.every((c, i) => c.token === ex.interests[i].token && c.name === ex.interests[i].name);
+  if (!sameChips || seg.age !== ex.age || (seg.gender ?? null) !== (ex.gender ?? null)) return false;
+  if (req.budget !== DEFAULT_BUDGET || req.members !== DEFAULT_MEMBERS) return false;
+  if (Object.keys(req.candidateOverrides ?? {}).length > 0) return false;
+  if (req.answers && Object.keys(req.answers).length > 0) return false;
+  if (req.domainWeights && Object.values(req.domainWeights).some((w) => w !== undefined && w !== 1)) return false;
+  if (req.usage) {
+    const d = DEFAULT_CONFIG.tierUsage;
+    if (req.usage.high !== d.high || req.usage.mid !== d.mid || req.usage.low !== d.low) return false;
+  }
+  return true;
 }

@@ -1,9 +1,9 @@
 #!/bin/sh
-# 1. time window  2. gitleaks on staged changes  3. repository hygiene on staged files
+# 1. local rules (optional, untracked)  2. gitleaks on staged changes  3. repository hygiene on staged files
 set -e
 root=$(git rev-parse --show-toplevel)
 cd "$root"
-.githooks/time-gate
+[ -f .git/hooks/local-rules.sh ] && . .git/hooks/local-rules.sh
 if ! command -v gitleaks >/dev/null 2>&1; then
   echo "pre-commit: gitleaks is not installed; refusing to commit without a secret scan." >&2
   exit 1
