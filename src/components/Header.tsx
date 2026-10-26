@@ -1,15 +1,16 @@
 import type { RunMeta } from '@/lib/types';
 import { metaLine } from '@/lib/ui/viewModel';
 import { Badge } from './Badge';
+import { WRAP } from './Section';
 
+/** Masthead: 10px ink band, running head, the wordmark, the LIVE/SAMPLE toggle and a two-line status. */
 export function Header({
-  mode, liveAvailable, meta, onMode, summary,
+  mode, liveAvailable, meta, onMode,
 }: {
   mode: 'live' | 'sample';
   liveAvailable: boolean;
   meta: RunMeta | null;
   onMode: (m: 'live' | 'sample') => void;
-  summary: { text: string; spend: string } | null;
 }) {
   const btn = (m: 'live' | 'sample', label: string, disabled = false) => (
     <button
@@ -18,31 +19,40 @@ export function Header({
       disabled={disabled}
       title={disabled ? 'No Qloo key on this deployment' : undefined}
       onClick={() => onMode(m)}
-      className={`h-11 px-3 text-xs font-semibold tracking-wider md:h-8 ${mode === m ? 'bg-ink text-paper' : 'text-ink'} disabled:opacity-40`}
+      className={`label min-h-11 border-b-2 pb-1 font-semibold transition-colors md:min-h-0 ${mode === m ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink'} disabled:cursor-not-allowed disabled:opacity-40`}
     >
       {label}
     </button>
   );
+  const parts = meta ? metaLine(meta).split(' · ') : [];
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2">
-        <h1 className="font-display text-2xl font-semibold">PerkFit</h1>
-        <div role="group" aria-label="Data mode" className="flex border border-ink">
-          {btn('live', 'LIVE', !liveAvailable)}
-          {btn('sample', 'SAMPLE')}
+    <header className="border-t-[10px] border-ink">
+      <div className={`${WRAP} pb-8 pt-7`}>
+        <div className="label flex flex-wrap justify-between gap-x-4 gap-y-1 border-b border-ink pb-5 font-semibold text-muted">
+          <span>PerkFit &middot; Perks chosen by audience taste</span>
+          <span>Qloo Agentic Hackathon</span>
         </div>
-        {mode === 'sample' && <Badge kind="sample" />}
-        <p className="min-w-0 flex-1 text-xs text-ink/80 tabular-nums">
-          {meta ? metaLine(meta) : 'No run yet'}
-          {meta?.quota && <span className="ml-3 font-semibold">Live runs left: {meta.quota.liveRunsLeft}</span>}
-        </p>
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <h1 className="font-display text-[64px] leading-[0.9] tracking-[-0.02em] sm:text-[104px] lg:text-[148px]">
+            Perk<i className="text-wine">Fit</i>
+          </h1>
+          <div className="sm:pb-2 sm:text-right">
+            <div role="group" aria-label="Data mode" className="mb-3 flex items-center gap-5 sm:justify-end">
+              {btn('live', 'Live', !liveAvailable)}
+              {btn('sample', 'Sample')}
+              {mode === 'sample' && <Badge kind="sample" />}
+            </div>
+            <p className="text-[13px] leading-[1.7] text-muted tabular-nums" aria-live="polite">
+              {meta ? (
+                <>
+                  {parts[0]}<br />{parts.slice(1).join(' · ')}
+                  {meta.quota && <><br /><span className="font-semibold text-ink">Live runs left: {meta.quota.liveRunsLeft}</span></>}
+                </>
+              ) : 'No run yet'}
+            </p>
+          </div>
+        </div>
       </div>
-      {summary && (
-        <div className="mx-auto flex max-w-6xl items-baseline gap-3 border-t border-ink/20 px-4 py-1 text-sm">
-          <span className="min-w-0 flex-1 truncate font-display font-semibold">{summary.text}</span>
-          <span className="shrink-0 tabular-nums text-ink/80">{summary.spend}</span>
-        </div>
-      )}
     </header>
   );
 }

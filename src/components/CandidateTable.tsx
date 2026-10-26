@@ -7,73 +7,54 @@ import type { CandidateRowVm } from '@/lib/ui/viewModel';
 import { TIER_DOTS } from '@/lib/ui/viewModel';
 import { BadgeLegend } from './Badge';
 import { EditableNumber } from './EditableNumber';
+import { TierChip } from './TierChip';
 
 type Edit = (id: string, patch: CandidateOverride) => void;
 
-function cells(r: CandidateRowVm, onEdit: Edit, suffix: string) {
+function cells(r: CandidateRowVm, onEdit: Edit) {
   const cur = (): CandidateOverride => ({ unitCost: r.unitCost, billing: r.billing, friction: r.friction });
   return {
-    cost: <EditableNumber value={r.unitCost} kind="unitCost" label={`Cost per use for ${r.name}${suffix}`} format={(n) => usd(n)} className="w-20" edited={r.edited.unitCost} onCommit={(v) => onEdit(r.id, { ...cur(), unitCost: v })} />,
+    cost: <EditableNumber value={r.unitCost} kind="unitCost" label={`Cost per use for ${r.name}`} format={(n) => usd(n)} className="w-full" edited={r.edited.unitCost} onCommit={(v) => onEdit(r.id, { ...cur(), unitCost: v })} />,
     billing: (
       <select
-        aria-label={`How billed for ${r.name}${suffix}`}
+        aria-label={`How billed for ${r.name}`}
         value={r.billing}
         onChange={(e) => onEdit(r.id, { ...cur(), billing: e.target.value as Billing })}
-        className={`h-11 border-0 border-b border-dotted border-assume bg-transparent md:h-8${r.edited.billing ? ' ring-1 ring-assume' : ''}`}
+        className={`min-h-11 w-full min-w-0 border-b border-ink bg-transparent px-1 text-sm md:min-h-9${r.edited.billing ? ' border-dotted border-sienna' : ''}`}
       >
         <option value="per_use">per use</option>
         <option value="fixed">fixed fee</option>
       </select>
     ),
-    friction: <EditableNumber value={r.friction} kind="friction" label={`Effort to redeem for ${r.name}${suffix}`} className="w-16" edited={r.edited.friction} onCommit={(v) => onEdit(r.id, { ...cur(), friction: v })} />,
-    match: r.match.kind === 'none' ? <span className="text-ink/60">not run yet</span> : r.match.kind === 'tier' ? <span><span aria-hidden className="mr-1">{TIER_DOTS[r.match.tier]}</span>{r.match.text.replace(/ \((.*)\)$/, ' · $1')}</span> : <span className="font-semibold">{r.match.text}</span>,
+    friction: <EditableNumber value={r.friction} kind="friction" label={`Effort to redeem for ${r.name}`} className="w-full" edited={r.edited.friction} onCommit={(v) => onEdit(r.id, { ...cur(), friction: v })} />,
+    match: r.match.kind === 'none'
+      ? <span className="text-muted">not run yet</span>
+      : r.match.kind === 'tier'
+        ? <TierChip tier={r.match.tier} dots={TIER_DOTS[r.match.tier]} label={r.match.text} />
+        : <span className="font-semibold">{r.match.text}</span>,
   };
 }
 
+/** Card rows, one layout at every width, so nothing overflows at 375px. */
 export function CandidateTable({ rows, onEdit }: { rows: CandidateRowVm[]; onEdit: Edit; qlooBadge?: 'qloo' | 'sample' }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <BadgeLegend />
-      <table className="hidden w-full text-sm md:table">
-        <caption className="sr-only">Partner perk candidates with editable cost assumptions</caption>
-        <thead>
-          <tr className="border-b-2 border-ink text-left text-xs uppercase tracking-wide text-ink/80 align-bottom">
-            <th scope="col" className="py-2">Perk</th>
-            <th scope="col">Category</th>
-            <th scope="col" className="text-right">Cost per use</th>
-            <th scope="col">How billed</th>
-            <th scope="col" className="text-right">Effort to redeem</th>
-            <th scope="col">Taste match</th>
-          </tr>
-        </thead>
-        <tbody className="tabular-nums">
-          {rows.map((r) => {
-            const c = cells(r, onEdit, '');
-            return (
-              <tr key={r.id} className="border-b border-ink/15">
-                <th scope="row" className="py-1 text-left font-normal">{r.name}</th>
-                <td>{r.domainLabel}</td>
-                <td className="text-right">{c.cost}</td>
-                <td>{c.billing}</td>
-                <td className="text-right">{c.friction}</td>
-                <td>{c.match}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <ul className="divide-y divide-ink/20 border-y border-ink/30 md:hidden">
+      <ul aria-label="Partner perk candidates with editable cost assumptions" className="grid border-t border-ink md:grid-cols-2 md:gap-x-12">
         {rows.map((r) => {
-          const c = cells(r, onEdit, ' (card)');
+          const c = cells(r, onEdit);
           return (
-            <li key={r.id} className="py-2 text-sm">
-              <p className="font-semibold">{r.name} <span className="font-normal text-ink/75">· {r.domainLabel}</span></p>
-              <div className="mt-1 grid grid-cols-3 gap-2">
-                <label className="block text-xs">Cost per use{c.cost}</label>
-                <label className="block text-xs">How billed{c.billing}</label>
-                <label className="block text-xs">Effort to redeem{c.friction}</label>
+            <li key={r.id} className="border-b border-rule py-3 text-sm">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="min-w-0 font-semibold">{r.name}</p>
+                <p className="shrink-0 text-xs text-muted">{r.domainLabel}</p>
               </div>
-              <p className="mt-1 text-xs">Taste match: {c.match}</p>
+              <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] gap-2">
+                <label className="block min-w-0 text-xs text-muted">Cost per use{c.cost}</label>
+                <label className="block min-w-0 text-xs text-muted">How billed{c.billing}</label>
+                <label className="block min-w-0 text-xs text-muted">Effort to redeem{c.friction}</label>
+              </div>
+              <p className="mt-1.5 flex items-center gap-2 text-xs text-muted">Taste match {c.match}</p>
             </li>
           );
         })}

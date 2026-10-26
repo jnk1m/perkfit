@@ -1,41 +1,44 @@
 import type { ViewModel } from '@/lib/ui/viewModel';
 
+const GRID = 'grid gap-x-4 gap-y-1 md:grid-cols-[56px_1fr_1.5fr_1fr_1fr_1.1fr]';
+const HEAD = 'text-[11px] font-semibold uppercase tracking-[0.16em] text-sienna';
+
+function Cell({ label, children, className = '' }: { label: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={className}>
+      <dt className={`${HEAD} md:sr-only`}>{label}</dt>
+      <dd className="text-[15px]">{children}</dd>
+    </div>
+  );
+}
+
+/** One numbered row per perk in the bundle: what to hide, from whom, how long, and what counts as a pass. */
 export function HoldoutCard({ rows, intro }: { rows: ViewModel['holdout']; intro: string }) {
   return (
     <div>
-      <p className="mb-3 text-sm font-semibold">{intro}</p>
+      <p className="mb-4 text-[15px] text-muted">{intro}</p>
       {rows.length === 0 ? (
-        <p className="text-sm">No perks in the bundle, so there is nothing to test.</p>
+        <p className="text-[15px]">No perks in the bundle, so there is nothing to test.</p>
       ) : (
         <>
-          <table className="hidden w-full text-sm md:table">
-            <caption className="sr-only">Holdout test plan per perk</caption>
-            <thead>
-              <tr className="border-b-2 border-ink text-left text-xs uppercase tracking-wide text-ink/80">
-                <th scope="col" className="py-2">Perk</th><th scope="col">Question</th><th scope="col">Held back</th>
-                <th scope="col">Measure</th><th scope="col">Pass if</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-b border-ink/15 align-top">
-                  <th scope="row" className="py-2 pr-2 text-left font-semibold">{r.name}</th>
-                  <td className="pr-3">{r.question}</td><td className="pr-3">{r.share}</td><td className="pr-3">{r.metric}</td><td>{r.rule}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <ul className="divide-y divide-ink/20 border-y border-ink/30 md:hidden">
-            {rows.map((r) => (
-              <li key={r.id} className="py-2 text-sm">
-                <details>
-                  <summary className="min-h-11 cursor-pointer py-2 font-semibold">{r.name}</summary>
-                  <p>{r.question}</p>
-                  <p className="mt-1 text-ink/80">Held back: {r.share} · Measure: {r.metric} · Pass if: {r.rule}</p>
-                </details>
+          <div aria-hidden className={`${GRID} hidden border-b border-ink pb-2.5 md:grid`}>
+            <span /><span className={HEAD}>Perk</span><span className={HEAD}>What you check</span><span className={HEAD}>Held back</span><span className={HEAD}>Measure</span><span className={HEAD}>Pass if</span>
+          </div>
+          <ol aria-label="Holdout test plan per perk">
+            {rows.map((r, i) => (
+              <li key={r.id}>
+                <dl className={`${GRID} border-b border-ink/30 py-3.5`}>
+                  <dt className="sr-only">Step</dt>
+                  <dd aria-hidden className="font-display text-[26px] leading-none text-sienna">{i + 1}</dd>
+                  <Cell label="Perk" className="font-display text-[22px] leading-tight md:text-[20px]"><span className="font-display">{r.name}</span></Cell>
+                  <Cell label="What you check">{r.question}</Cell>
+                  <Cell label="Held back">{r.share} for {r.duration}</Cell>
+                  <Cell label="Measure">{r.metric}</Cell>
+                  <Cell label="Pass if">{r.rule}</Cell>
+                </dl>
               </li>
             ))}
-          </ul>
+          </ol>
         </>
       )}
     </div>

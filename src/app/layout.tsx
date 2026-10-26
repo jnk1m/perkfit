@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist } from "next/font/google";
+import { Instrument_Serif, Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"] });
+const interTight = Inter_Tight({ variable: "--font-inter-tight", subsets: ["latin"] });
+const instrumentSerif = Instrument_Serif({ variable: "--font-instrument-serif", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
   title: "PerkFit",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html lang="en" className={`${interTight.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <body className="min-h-full bg-paper text-ink">{children}</body>
     </html>
   );

@@ -17,59 +17,58 @@ export function BudgetPanel({
   onBudget: (v: number) => void; onMembers: (v: number) => void; onUsage: (t: FitTier, v: number) => void; onWeight: (d: Domain, v: number) => void;
   onIncludeLlm: (v: boolean) => void; onRun: () => void;
 }) {
+  const row = 'flex items-center justify-between gap-4';
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
-        <div className="text-sm">
-          <p className="mb-1 flex items-center gap-2">Monthly budget <Badge kind="assumption" /></p>
-          <EditableNumber value={budget} kind="budget" label="Monthly budget in dollars" format={usd} className="w-28" onCommit={onBudget} />
-        </div>
-        <div className="text-sm">
-          <p className="mb-1 flex items-center gap-2">Members <Badge kind="assumption" /></p>
-          <EditableNumber value={members} kind="members" label="Number of members" format={(n) => n.toLocaleString('en-US')} className="w-28" onCommit={onMembers} />
-        </div>
+    <div className="space-y-4 text-[15px]">
+      <div className={row}>
+        <span className="flex flex-wrap items-center gap-x-2">Monthly budget <Badge kind="assumption" /></span>
+        <EditableNumber value={budget} kind="budget" label="Monthly budget in dollars" format={usd} className="w-32 font-semibold" onCommit={onBudget} />
+      </div>
+      <div className={row}>
+        <span className="flex flex-wrap items-center gap-x-2">Members <Badge kind="assumption" /></span>
+        <EditableNumber value={members} kind="members" label="Number of members" format={(n) => n.toLocaleString('en-US')} className="w-32 font-semibold" onCommit={onMembers} />
       </div>
 
-      <fieldset className="text-sm">
-        <legend className="mb-1 flex items-center gap-2">Assumed share of members using the perk, by taste fit <Badge kind="assumption" /></legend>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
+      <fieldset>
+        <legend className="mb-2 flex flex-wrap items-center gap-x-2">Usage by taste match <Badge kind="assumption" /></legend>
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
           {(['high', 'mid', 'low'] as const).map((t) => (
-            <label key={t} className="flex items-center gap-2">
+            <label key={t} className="flex items-center gap-2 text-muted">
               {TIER_NAME[t]}
-              <EditableNumber value={usage[t]} kind="usage" label={`Assumed usage share, ${TIER_NAME[t]} taste fit`} className="w-16" onCommit={(v) => onUsage(t, v)} />
+              <EditableNumber value={usage[t]} kind="usage" label={`Assumed usage share, ${TIER_NAME[t]} taste fit`} className="w-14 font-semibold text-ink" onCommit={(v) => onUsage(t, v)} />
             </label>
           ))}
         </div>
-        <p className="mt-1 text-xs text-ink/75">Per-use ranking does not depend on usage assumptions; only fixed-fee perks are sensitive to them.</p>
+        <p className="mt-2 text-[13px] text-muted">Assumed share of members using the perk. Per-use ranking does not depend on usage assumptions; only fixed-fee perks are sensitive to them.</p>
       </fieldset>
 
-      <fieldset className="text-sm">
-        <legend className="mb-1 flex items-center gap-2">Domain weights (0 to 2) <Badge kind="assumption" /></legend>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
+      <fieldset>
+        <legend className="mb-2 flex flex-wrap items-center gap-x-2">Domain weights (0 to 2) <Badge kind="assumption" /></legend>
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
           {(Object.keys(DOMAIN_NAME) as Domain[]).map((d) => (
-            <label key={d} className="flex items-center gap-2">
+            <label key={d} className="flex items-center gap-2 text-muted">
               {DOMAIN_NAME[d]}
-              <EditableNumber value={weights[d]} kind="weight" label={`Weight for ${DOMAIN_NAME[d]}`} className="w-16" onCommit={(v) => onWeight(d, v)} />
+              <EditableNumber value={weights[d]} kind="weight" label={`Weight for ${DOMAIN_NAME[d]}`} className="w-12 font-semibold text-ink" onCommit={(v) => onWeight(d, v)} />
             </label>
           ))}
         </div>
       </fieldset>
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={includeLlm} onChange={(e) => onIncludeLlm(e.target.checked)} className="size-5" />
+        <input type="checkbox" checked={includeLlm} onChange={(e) => onIncludeLlm(e.target.checked)} className="size-5 shrink-0 accent-ink" />
         Also ask an LLM alone for a baseline bundle
       </label>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-2 pt-1">
         <button
           type="button"
           onClick={onRun}
           disabled={running || !canRun}
-          className="h-12 border-2 border-ink bg-ink px-5 font-semibold text-paper disabled:opacity-40"
+          className="min-h-12 bg-ink px-[26px] py-3.5 text-sm font-semibold tracking-[0.04em] text-paper transition-colors hover:bg-bottle focus-visible:outline-3 focus-visible:outline-sienna active:bg-ink-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-ink"
         >
           {running ? 'Running…' : runLabel}
         </button>
-        {blockedReason && <p role="alert" className="text-sm text-assume">{blockedReason}</p>}
+        {blockedReason && <p role="alert" className="text-sm text-sienna">{blockedReason}</p>}
       </div>
     </div>
   );

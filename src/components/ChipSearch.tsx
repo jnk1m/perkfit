@@ -78,7 +78,7 @@ export function ChipSearch({ existing, full, onAdd }: { existing: Set<string>; f
         aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         disabled={full}
         value={q}
-        placeholder={full ? 'Chip limit reached (5)' : '+ add interest (title, brand, place…)'}
+        placeholder={full ? 'Chip limit reached (5)' : '+ Add an interest (title, brand, place…)'}
         onChange={(e) => onInput(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive((i) => Math.min(results.length - 1, i + 1)); }
@@ -86,9 +86,9 @@ export function ChipSearch({ existing, full, onAdd }: { existing: Set<string>; f
           else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); pick(results[active]); }
           else if (e.key === 'Escape') { setOpen(false); setActive(-1); }
         }}
-        className="h-11 w-full min-w-56 border border-ink/50 bg-white/60 px-2 text-sm md:h-9"
+        className="min-h-11 w-full rounded-full border border-dashed border-muted bg-transparent px-4 text-sm placeholder:text-muted disabled:opacity-60 md:min-h-9"
       />
-      <ul id={listId} role="listbox" aria-label="Search results" hidden={!open || results.length === 0} className="absolute z-10 mt-1 w-full border border-ink bg-paper shadow-sm">
+      <ul id={listId} role="listbox" aria-label="Search results" hidden={!open || results.length === 0} className="absolute z-10 mt-1 w-full overflow-hidden border border-ink bg-paper shadow-sm">
         {results.map((r, i) => {
           const added = existing.has(r.token);
           return (
@@ -107,11 +107,11 @@ export function ChipSearch({ existing, full, onAdd }: { existing: Set<string>; f
           );
         })}
       </ul>
-      <p className="mt-1 text-xs" aria-live="polite">
+      <p className="mt-1 text-xs text-muted" aria-live="polite">
         {status === 'loading' && 'Searching…'}
         {status === 'done' && results.length === 0 && 'No match. Try another name.'}
         {status === 'done' && results.length > 0 && 'Pick one result. Nothing is added automatically.'}
-        {error && <span role="alert" className="text-assume">{error}</span>}
+        {error && <span role="alert" className="text-sienna">{error}</span>}
       </p>
     </div>
   );

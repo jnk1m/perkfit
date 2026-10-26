@@ -3,8 +3,8 @@
  * UI layer touches those modules.
  */
 import 'server-only';
-import { DEFAULT_BUDGET, DEFAULT_MEMBERS, EXAMPLE_SEGMENTS } from '@/data/candidates';
-import { DEFAULT_CONFIG } from '@/lib/engine';
+import { CANDIDATES, DEFAULT_BUDGET, DEFAULT_MEMBERS, EXAMPLE_SEGMENTS } from '@/data/candidates';
+import { DEFAULT_CONFIG, runEngine } from '@/lib/engine';
 import { runPerkFit } from '@/lib/agent';
 import { createQlooPort } from '@/lib/agent/qloo-port';
 import type { CompareRequest, CompareResponse, RunEvent, RunRequest, SearchResponse } from '@/lib/api/types';
@@ -12,9 +12,11 @@ import { qlooEntriesFromDomainResults } from '@/lib/ledger';
 import { createAiSdkClient, getModel, getModelId } from '@/lib/llm';
 import { getClientIp } from '@/lib/ops/ip';
 import { checkQuota } from '@/lib/ops/quota';
-import { chipToken, createRunContext, getQlooService } from '@/lib/qloo';
+import { chipToken, createQlooService, createRunContext, getQlooService } from '@/lib/qloo';
+import type { QlooTransport } from '@/lib/qloo/transport';
 import type { SearchType } from '@/lib/qloo/types';
 import type { ApiError, CandidateScore, Segment } from '@/lib/types';
+import { chartPoints, type ChartPoint } from './chartData';
 import { applyOverrides } from './sampleRunner';
 
 export type QuotaKind = 'run' | 'compare' | 'search';
@@ -139,4 +141,34 @@ export function isPrecachedExample(req: RunRequest): boolean {
     if (req.usage.high !== d.high || req.usage.mid !== d.mid || req.usage.low !== d.low) return false;
   }
   return true;
+}
+
+/** Offline transport: if scoring ever reaches for the network, it fails closed instead of calling Qloo. */
+const offlineTransport: QlooTransport = () => Promise.reject(new Error('exampleHeroPoints: network calls are not allowed'));
+
+let heroPoints: Promise<ChartPoint[] | null> | undefined;
+
+/**
+ * Example A scored from the precache only, for the chart shown before the first Run. Null when live mode is off,
+ * the precache is missing, or any perk misses the cache. Never calls Qloo.
+ */
+export function exampleHeroPoints(): Promise<ChartPoint[] | null> {
+  heroPoints ??= computeHeroPoints().catch(() => null);
+  return heroPoints;
+}
+
+async function computeHeroPoints(): Promise<ChartPoint[] | null> {
+  if (!liveConfigured()) return null;
+  const segment = EXAMPLE_SEGMENTS.find((s) => s.id === 'example_a');
+  if (!segment) return null;
+  const service = createQlooService({ transport: offlineTransport });
+  if (!service.precache) return null;
+  const candidates = [...CANDIDATES];
+  const ctx = createRunContext({ deadlineMs: 5_000 });
+  const byDomain = await service.scoreSegment(segment, candidates, ctx);
+  if (ctx.stats.networkCalls > 0) return null;
+  const scores = Object.values(byDomain).flatMap((r) => r.scores);
+  if (scores.length !== candidates.length || scores.some((s) => s.status !== 'ok')) return null;
+  const result = runEngine({ segment, candidates, budget: DEFAULT_BUDGET, members: DEFAULT_MEMBERS }, scores, DEFAULT_CONFIG);
+  return chartPoints(result);
 }

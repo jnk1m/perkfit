@@ -29,13 +29,13 @@ export function ErrorBox({ error, onRetry, onSample }: { error: ApiError; onRetr
   const showRetry = error.code !== 'quota_exceeded' && error.code !== 'invalid_request';
   const showSample = error.code === 'qloo_unavailable' || error.code === 'quota_exceeded' || error.code === 'qloo_rate_limited';
   return (
-    <div role="alert" className="border-2 border-ink bg-white/60 p-3 text-sm">
+    <div role="alert" className="border-l-4 border-l-sienna bg-sand p-4 text-sm">
       <p className="font-semibold">{COPY[error.code]}</p>
-      {error.code !== 'quota_exceeded' && <p className="mt-1 text-ink/85">{error.message}</p>}
+      {error.code !== 'quota_exceeded' && <p className="mt-1 text-ink/80">{error.message}</p>}
       {left !== null && left > 0 && <p className="mt-1 tabular-nums">Retrying once in {left}s.</p>}
       <div className="mt-2 flex flex-wrap gap-2">
-        {showRetry && <button type="button" onClick={onRetry} className="h-11 border border-ink px-3 md:h-8">Retry</button>}
-        {showSample && <button type="button" onClick={onSample} className="h-11 border border-ink px-3 md:h-8">Switch to sample mode</button>}
+        {showRetry && <button type="button" onClick={onRetry} className="min-h-11 border border-ink px-4 transition-colors hover:bg-ink hover:text-paper active:bg-ink-2 active:text-paper md:min-h-8">Retry</button>}
+        {showSample && <button type="button" onClick={onSample} className="min-h-11 border border-ink px-4 transition-colors hover:bg-ink hover:text-paper active:bg-ink-2 active:text-paper md:min-h-8">Switch to sample mode</button>}
       </div>
     </div>
   );

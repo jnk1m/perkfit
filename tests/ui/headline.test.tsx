@@ -17,8 +17,13 @@ describe('Headline', () => {
     expect(vm.headline.subtitle).toMatch(/\(range \$[\d,]+ to \$[\d,]+\)\.$/);
     expect(getByTestId('headline-subtitle').textContent).toBe(vm.headline.subtitle);
     expect(container.textContent).toContain('range $');
-    // Qloo-ranked claim: solid teal underline. Assumption-based claim: dotted amber underline.
+    // The spent amount is styled apart from the sentence without changing the text.
+    expect(container.querySelector('[data-testid="headline-text"] em')?.textContent).toMatch(/^\$[\d,]+$/);
+    expect(getByTestId('headline-skipped').textContent).toBe(vm.headline.skippedLine);
+    // Qloo-ranked claim: solid green underline. Assumption-based claim: dotted sienna underline (sand tint on the ink field).
     expect(getByTestId('headline-text').className).toContain('decoration-qloo');
+    expect(getByTestId('headline-text').className).toContain('decoration-tint-green');
+    expect(getByTestId('headline-subtitle').className).toContain('decoration-tint-sand');
     expect(getByTestId('headline-subtitle').className).toContain('decoration-assume');
     expect(getByTestId('headline-subtitle').className).toContain('decoration-dotted');
   });

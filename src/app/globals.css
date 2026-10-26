@@ -1,29 +1,61 @@
 @import "tailwindcss";
 
+/*
+  PerkFit design tokens: "Ink & Bottle".
+  Deep colour fields (ink for the result, bottle for what-if, a thin wine band for the notice) on paper,
+  large serif numerals, thin rules. Semantic colours stay fixed: qloo = bottle, assume = sienna, calc = ink.
+*/
 @theme {
-  --color-paper: #faf7f0;
-  --color-ink: #1c1917;
-  --color-qloo: #0f766e;
-  --color-assume: #b45309;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, serif;
+  --color-paper: #f4f0e7;       /* page */
+  --color-paper-2: #ebe5d8;     /* slightly deeper paper for alternating rows */
+  --color-sand: #ddd2ba;        /* evidence panel */
+  --color-ink: #0e1a2b;         /* text, result field */
+  --color-ink-2: #1a2a40;       /* result field gradient end */
+  --color-muted: #5a6270;       /* secondary text on paper */
+  --color-rule: #c9c0ad;        /* thin rules on paper */
+  --color-bottle: #1f4a3a;      /* what-if field, High, QLOO */
+  --color-wine: #5e1b30;        /* notice band, SAMPLE, logo accent */
+  --color-sienna: #8a4b2a;      /* numerals, section labels, ASSUMPTION */
+  --color-tint-green: #7fb59b;  /* on dark fields */
+  --color-tint-sand: #d49a6a;   /* on dark fields */
+  --color-on-dark: #f4f0e7;     /* text on ink/bottle/wine */
+  --color-on-dark-muted: #b8bcc4;
+  --color-qloo: #1f4a3a;        /* alias: Qloo-sourced values */
+  --color-assume: #8a4b2a;      /* alias: assumptions */
+  --color-low: #8a4b2a;
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-serif), Georgia, serif;
 }
 
+html { background: #f4f0e7; }
 body {
-  background: #faf7f0;
-  color: #1c1917;
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  background: #f4f0e7;
+  color: #0e1a2b;
+  font-family: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "tnum" 1;
 }
 
 :focus-visible {
-  outline: 2px solid #1c1917;
+  outline: 2px solid #1f4a3a;
   outline-offset: 2px;
 }
 
 /* SAMPLE badge and sample-data rows: diagonal hatching so synthetic values never read as Qloo results. */
 .hatch {
-  background-image: repeating-linear-gradient(135deg, rgb(28 25 23 / 0.22) 0 2px, transparent 2px 6px);
+  background-image: repeating-linear-gradient(135deg, rgb(94 27 48 / 0.25) 0 2px, transparent 2px 6px);
 }
+
+/* Colour fields */
+.field-ink { background: linear-gradient(180deg, #0e1a2b 0%, #1a2a40 100%); color: #f4f0e7; }
+.field-bottle { background: #1f4a3a; color: #f4f0e7; }
+.field-wine { background: #5e1b30; color: #f4f0e7; }
+
+/* Small label: lowercase-safe tracking for section labels (never all caps by default) */
+.label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* One-time reveal for the result field */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 480ms ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -34,7 +34,7 @@ export function EditableNumber({
   };
 
   return (
-    <span className="inline-block">
+    <span className="inline-block max-w-full">
       <input
         type="text"
         inputMode="decimal"
@@ -49,9 +49,9 @@ export function EditableNumber({
           if (e.key === 'Enter') e.currentTarget.blur();
           if (e.key === 'Escape') { cancelled.current = true; setDraft(null); setError(null); e.currentTarget.blur(); }
         }}
-        className={`${className} h-11 border-0 border-b border-dotted border-assume bg-transparent px-1 text-right tabular-nums md:h-8${edited ? ' ring-1 ring-assume' : ''}`}
+        className={`${className} min-h-11 border-b border-ink bg-transparent px-1 text-right tabular-nums transition-colors hover:bg-paper-2 md:min-h-9${edited ? ' border-dotted border-sienna' : ''}`}
       />
-      {error && <span id={errId} role="alert" className="block max-w-48 text-xs text-assume">{error}</span>}
+      {error && <span id={errId} role="alert" className="block max-w-48 text-xs text-sienna">{error}</span>}
     </span>
   );
 }

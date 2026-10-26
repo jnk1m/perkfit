@@ -4,9 +4,10 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { CandidateOverride, CompareRequest, CompareResponse, RunRequest } from '@/lib/api/types';
 import type { ApiError, Candidate, Domain, RunInput, Segment } from '@/lib/types';
 import { DEFAULTS, configFromRequest, hashInputs, mergeConfig } from '@/lib/ui/engine';
-import { usd } from '@/lib/ui/format';
 import { readRunStream } from '@/lib/ui/readRunStream';
 import { initialState, reducer, type SegmentKey } from '@/lib/ui/reducer';
+import type { ChartPoint } from '@/lib/ui/chartData';
+import { chartPoints } from '@/lib/ui/chartData';
 import { candidateRows, toViewModel } from '@/lib/ui/viewModel';
 import { AgentTrace } from './AgentTrace';
 import { AskUser } from './AskUser';
@@ -18,15 +19,17 @@ import { ComparePanel } from './ComparePanel';
 import { ErrorBox } from './ErrorBox';
 import { Header } from './Header';
 import { Headline } from './Headline';
+import { Hero } from './Hero';
 import { HoldoutCard } from './HoldoutCard';
-import { InputSummaryBar } from './InputSummaryBar';
 import { QlooSignals } from './QlooSignals';
 import { RunProgress } from './RunProgress';
 import { SafeUseNote } from './SafeUseNote';
-import { Section } from './Section';
+import { Section, WRAP } from './Section';
 import { Summary } from './Summary';
 import { ScenarioTable, SpendBar } from './SpendBar';
 import { SegmentPanel } from './SegmentPanel';
+import { TwoRulers } from './TwoRulers';
+import { BadgeLegend } from './Badge';
 
 const RUN_TIMEOUT_MS = 55_000;
 const DOMAIN_NAME: Record<Domain, string> = { place: 'places', tv_show: 'TV shows', brand: 'brands', book: 'books' };
@@ -45,13 +48,14 @@ async function readApiError(res: Response): Promise<ApiError> {
 }
 
 export function PerkFitApp({
-  examples, candidates, defaultBudget, defaultMembers, liveAvailable,
+  examples, candidates, defaultBudget, defaultMembers, liveAvailable, heroPoints,
 }: {
   examples: readonly Segment[];
   candidates: readonly Candidate[];
   defaultBudget: number;
   defaultMembers: number;
   liveAvailable: boolean;
+  heroPoints: ChartPoint[] | null;
 }) {
   const [state, dispatch] = useReducer(
     reducer,
@@ -59,7 +63,6 @@ export function PerkFitApp({
     initialState,
   );
   const [openWhy, setOpenWhy] = useState<string | null>(null);
-  const [inputsOpen, setInputsOpen] = useState(true);
   const resultRef = useRef<HTMLDivElement | null>(null);
   const runIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
@@ -93,16 +96,10 @@ export function PerkFitApp({
   const rows = useMemo(() => candidateRows(input, shown?.scores ?? null, vm?.result ?? null), [input, shown, vm]);
   const sampleView = state.mode === 'sample' || shown?.meta?.dataSource === 'sample';
   const qlooBadge = sampleView ? 'sample' : 'qloo';
-  const effectiveOpen = openWhy;
   const failedDomains = shown?.domainStatus ? (Object.keys(shown.domainStatus) as Domain[]).filter((d) => shown.domainStatus?.[d] === 'failed') : [];
 
-  // A new result folds the inputs into one line (state adjusted during render) and scrolls to it once per run.
+  // Scroll to a new result once per run.
   const shownRunId = shown?.runId;
-  const [foldedRunId, setFoldedRunId] = useState<number | undefined>(undefined);
-  if (shownRunId !== undefined && shownRunId !== foldedRunId) {
-    setFoldedRunId(shownRunId);
-    setInputsOpen(false);
-  }
   useEffect(() => {
     if (shownRunId === undefined) return;
     const id = requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -172,112 +169,133 @@ export function PerkFitApp({
 
   const noChips = segment.interests.length === 0;
   const blockedReason = noChips ? 'Add at least one interest chip.' : state.mode === 'live' && !liveAvailable ? 'Live mode is not available here. Switch to sample mode.' : null;
-  const runLabel = stale && shown && !segmentChanged ? 'Run again' : `Run with ${segment.label}`;
-  const showInputs = inputsOpen || !shown;
+  const shortName = segment.id === 'custom' ? 'Custom' : segment.label.split(':')[0];
+  const runLabel = stale && shown && !segmentChanged ? 'Run again' : `Run ${shortName}`;
   const dim = segmentChanged || (running && state.current !== shown);
+  const heroVisible = !vm && !running;
+  const [candOpen, setCandOpen] = useState(false);
+  const label = 'label mb-4 font-semibold text-sienna';
+  const points = vm ? chartPoints(vm.result) : null;
 
   return (
     <>
-      <Header
-        mode={state.mode}
-        liveAvailable={liveAvailable}
-        meta={shown?.meta ?? null}
-        onMode={(m) => dispatch({ type: 'set_mode', mode: m })}
-        summary={vm ? { text: vm.headline.text, spend: `${usd(vm.spend.used)} of ${usd(vm.spend.budget)}` } : null}
-      />
-      <main className="mx-auto max-w-6xl space-y-8 px-4 py-6">
-        <p className="max-w-3xl text-sm text-ink/85">
-          Pick partner perks for a customer segment by taste, inside a budget. Qloo ranks how well each perk fits the segment; costs and usage are editable assumptions.
-        </p>
-        {sampleView && <Banner>{SAMPLE_BANNER}</Banner>}
+      <Header mode={state.mode} liveAvailable={liveAvailable} meta={shown?.meta ?? null} onMode={(m) => dispatch({ type: 'set_mode', mode: m })} />
+      <main>
+        <section aria-label="Inputs" className="border-y border-ink">
+          <div className={`${WRAP} grid lg:grid-cols-[1.1fr_1.1fr_0.8fr]`}>
+            <div className="py-8 lg:pr-8">
+              <h2 className={label}>I. The audience</h2>
+              <SegmentPanel
+                segment={segment}
+                active={state.active}
+                onSelect={select}
+                onChange={(next) => dispatch({ type: 'edit_custom', segment: { ...next, id: 'custom', label: 'Custom segment' } })}
+              />
+            </div>
+            <div className="border-t border-ink py-8 lg:border-l lg:border-t-0 lg:px-8">
+              <h2 className={label}>II. The budget</h2>
+              <BudgetPanel
+                budget={state.budget} members={state.members} usage={state.usage} weights={state.weights} includeLlm={state.includeLlm}
+                running={running} canRun={blockedReason === null} blockedReason={blockedReason} runLabel={runLabel}
+                onBudget={(v) => dispatch({ type: 'set_budget', value: v })} onMembers={(v) => dispatch({ type: 'set_members', value: v })}
+                onUsage={(t, v) => dispatch({ type: 'set_usage', tier: t, value: v })} onWeight={(d, v) => dispatch({ type: 'set_weight', domain: d, value: v })}
+                onIncludeLlm={(v) => dispatch({ type: 'set_include_llm', value: v })} onRun={() => void run()}
+              />
+            </div>
+            <div className="border-t border-ink py-8 lg:border-l lg:border-t-0 lg:pl-8">
+              <h2 className={label}>III. Candidates</h2>
+              <p className="font-display text-[56px] leading-none tabular-nums">{cands.length}</p>
+              <p className="mt-2 text-sm text-muted">candidate perks, with price, effort and taste match</p>
+              <button
+                type="button"
+                aria-expanded={candOpen}
+                aria-controls="candidate-table"
+                onClick={() => setCandOpen((o) => !o)}
+                className="label mt-4 flex min-h-11 w-full items-center justify-between border-t border-ink pt-2 font-semibold transition-colors hover:text-bottle md:min-h-9"
+              >
+                <span>{candOpen ? 'Hide table' : 'Show table'}</span>
+                <span aria-hidden>{candOpen ? '−' : '+'}</span>
+              </button>
+            </div>
+          </div>
+          {candOpen && (
+            <div id="candidate-table" className="border-t border-ink">
+              <div className={`${WRAP} space-y-3 py-6`}>
+                <CandidateTable rows={rows} qlooBadge={qlooBadge} onEdit={(id, override) => dispatch({ type: 'edit_candidate', id, override })} />
+              </div>
+            </div>
+          )}
+        </section>
 
-        {showInputs ? (
-          <>
-          <Section id="input" n={1} title="Who">
-            <SegmentPanel
-              segment={segment}
-              active={state.active}
-              onSelect={select}
-              onChange={(next) => dispatch({ type: 'edit_custom', segment: { ...next, id: 'custom', label: 'Custom segment' } })}
-            />
-          </Section>
-
-          <Section id="perks" n={2} title={`Candidate perks (${cands.length})`}>
-            <CandidateTable rows={rows} qlooBadge={qlooBadge} onEdit={(id, override) => dispatch({ type: 'edit_candidate', id, override })} />
-          </Section>
-
-          <Section id="budget" n={3} title="Budget">
-            <BudgetPanel
-              budget={state.budget} members={state.members} usage={state.usage} weights={state.weights} includeLlm={state.includeLlm}
-              running={running} canRun={blockedReason === null} blockedReason={blockedReason} runLabel={runLabel}
-              onBudget={(v) => dispatch({ type: 'set_budget', value: v })} onMembers={(v) => dispatch({ type: 'set_members', value: v })}
-              onUsage={(t, v) => dispatch({ type: 'set_usage', tier: t, value: v })} onWeight={(d, v) => dispatch({ type: 'set_weight', domain: d, value: v })}
-              onIncludeLlm={(v) => dispatch({ type: 'set_include_llm', value: v })} onRun={() => void run()}
-            />
-          </Section>
-          </>
-        ) : (
-          <InputSummaryBar
-            segmentName={segment.id === 'custom' ? segment.label : segment.label.split(':')[0]}
-            perks={cands.length}
-            budget={state.budget}
-            members={state.members}
-            onEdit={() => setInputsOpen(true)}
-          />
+        {(sampleView || segmentChanged || (stale && !segmentChanged) || failedDomains.length > 0 || state.ask || state.error) && (
+          <div className={`${WRAP} space-y-3 pt-6`}>
+            {sampleView && <Banner>{SAMPLE_BANNER}</Banner>}
+            {segmentChanged && <Banner tone="assume">Segment changed. Press Run.</Banner>}
+            {stale && !segmentChanged && <Banner tone="assume">{STALE_NOTE}</Banner>}
+            {failedDomains.length > 0 && (
+              <Banner tone="assume">
+                Qloo did not answer for {failedDomains.map((d) => DOMAIN_NAME[d]).join(', ')}. Those perks are on hold.{' '}
+                <button type="button" onClick={() => void run()} className="ml-2 min-h-11 border border-ink px-4 text-ink transition-colors hover:bg-ink hover:text-paper md:min-h-8">Retry</button>
+              </Banner>
+            )}
+            {state.ask && <AskUser ask={state.ask} onAnswer={answer} />}
+            {state.error && <ErrorBox error={state.error} onRetry={() => void run()} onSample={() => dispatch({ type: 'set_mode', mode: 'sample' })} />}
+          </div>
         )}
 
-        <div className="space-y-3">
-          <RunProgress stages={state.stages} visible={running} />
-          {state.ask && <AskUser ask={state.ask} onAnswer={answer} />}
-          {state.error && <ErrorBox error={state.error} onRetry={() => void run()} onSample={() => dispatch({ type: 'set_mode', mode: 'sample' })} />}
+        <div ref={resultRef} className="scroll-mt-4">
+          {heroVisible ? (
+            <Hero points={heroPoints} />
+          ) : (
+            <section id="result" aria-labelledby="result-h" className="field-ink">
+              <div className={`${WRAP} pb-14 pt-16`}>
+                <div className="label mb-8 flex justify-between gap-4 font-semibold text-tint-sand sm:mb-[34px]">
+                  <span>This month&rsquo;s picks &middot; {segment.label}</span>
+                  <h2 id="result-h">{running && !vm ? 'Scoring…' : 'Result'}</h2>
+                </div>
+                <RunProgress stages={state.stages} visible={running} />
+                {vm && (
+                  <div key={shownRunId} className={`rise ${running ? 'mt-8' : ''} ${dim ? 'opacity-50' : ''}`}>
+                    {vm.summary && <Summary summary={vm.summary} />}
+                    <Headline vm={vm.headline} />
+                    <QlooSignals chips={segment.interests.length} perks={cands.length} categories={new Set(cands.map((c) => c.domain)).size} meta={shown?.meta ?? null} />
+                    <SpendBar spend={vm.spend} domains={Object.fromEntries(cands.map((c) => [c.id, c.domain]))} />
+                    {points && points.length > 0 && (
+                      <div className="mt-12">
+                        <TwoRulers points={points} variant="ink" />
+                      </div>
+                    )}
+                    <details className="group mt-6 border-t border-on-dark/25 pt-3">
+                      <summary className="flex cursor-pointer list-none justify-between text-[13px] text-on-dark-muted [&::-webkit-details-marker]:hidden">
+                        <span>Usage cases</span>
+                        <span><span className="group-open:hidden">Show table +</span><span className="hidden group-open:inline">Hide table &minus;</span></span>
+                      </summary>
+                      <div className="mt-4">
+                        <ScenarioTable rows={vm.scenarios} showSaved />
+                        {vm.sensitivity && <p className="mt-3 text-sm text-on-dark-muted">{vm.sensitivity}</p>}
+                      </div>
+                    </details>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </div>
 
-        {segmentChanged && <Banner tone="assume">Segment changed. Press Run.</Banner>}
-        {stale && !segmentChanged && <Banner tone="assume">{STALE_NOTE}</Banner>}
-        {failedDomains.length > 0 && (
-          <Banner tone="assume">
-            Qloo did not answer for {failedDomains.map((d) => DOMAIN_NAME[d]).join(', ')}. Those perks are on hold.{' '}
-            <button type="button" onClick={() => void run()} className="ml-2 h-11 border border-ink px-3 text-ink md:h-8">Retry</button>
-          </Banner>
-        )}
-
-        <div className={dim ? 'space-y-8 opacity-50' : 'space-y-8'}>
-          <div ref={resultRef} className="scroll-mt-24">
-            <Section id="result" n={4} title="Result">
-              {vm ? (
-                <div className="space-y-5">
-                  {vm.summary && <Summary summary={vm.summary} />}
-                  <Headline vm={vm.headline} />
-                  <QlooSignals chips={segment.interests.length} perks={cands.length} categories={new Set(cands.map((c) => c.domain)).size} meta={shown?.meta ?? null} />
-                  <SpendBar spend={vm.spend} />
-                  <details className="text-sm">
-                    <summary className="cursor-pointer font-semibold">Usage cases</summary>
-                    <ScenarioTable rows={vm.scenarios} showSaved />
-                    {vm.sensitivity && <p className="mt-2 text-ink/85">{vm.sensitivity}</p>}
-                  </details>
-                </div>
-              ) : (
-                <p className="text-sm text-ink/80">{running ? 'Scoring…' : `Results appear here. Press Run to rank the perks for ${segment.label}.`}</p>
+        {vm && (
+          <div className={dim ? 'opacity-50' : undefined}>
+            <Section id="why" title="Best bundle" hint="Five perks, ranked by taste fit, then value">
+              <BundleTable rows={vm.bundle} openId={openWhy} onToggle={(id) => setOpenWhy(openWhy === id ? null : id)} qlooBadge={qlooBadge} />
+              {vm.onHold.length > 0 && (
+                <p className="mt-4 text-sm">
+                  <span className="font-semibold">On hold: no Qloo data. Nothing fills the gap.</span> {vm.onHold.map((h) => `${h.name} (${h.why})`).join(', ')}
+                </p>
               )}
+              <div className="mt-6"><BadgeLegend /></div>
             </Section>
-          </div>
 
-          {vm && (
-            <>
-              <Section id="why" n={5} title="Best bundle">
-                <BundleTable rows={vm.bundle} openId={effectiveOpen} onToggle={(id) => setOpenWhy(effectiveOpen === id ? null : id)} qlooBadge={qlooBadge} />
-                {vm.onHold.length > 0 && (
-                  <p className="mt-1 text-sm">
-                    <span className="font-semibold">On hold: no Qloo data. Nothing fills the gap.</span> {vm.onHold.map((h) => `${h.name} (${h.why})`).join(', ')}
-                  </p>
-                )}
-              </Section>
-
-              <Section id="holdout" n={6} title="How to test it" collapsible hint="Hide each perk from a small group and compare usage.">
-                <HoldoutCard rows={vm.holdout} intro={vm.holdoutIntro} />
-              </Section>
-
-              <Section id="compare" n={7} title="What-if" collapsible hint="Popularity order, a general AI, another segment.">
+            <div className="mt-14">
+              <Section id="compare" title="What if…" hint="Three ways the answer could have been different" tone="bottle">
                 <ComparePanel
                   cards={vm.cards}
                   compare={state.compare}
@@ -287,16 +305,22 @@ export function PerkFitApp({
                   onCompare={() => void startCompare(runIdRef.current, segment)}
                 />
               </Section>
-            </>
-          )}
-        </div>
+            </div>
 
-        <AgentTrace
-          steps={shown?.trace}
-          summary={shown?.meta ? `${shown.meta.agentSteps} steps · ${shown.meta.qlooCalls} Qloo calls · explanations ${shown.meta.explanations.passed}/${shown.meta.explanations.total}` : undefined}
-        />
-        <SafeUseNote variant="footer" />
+            <Section id="holdout" title="How to test it" hint="Taste match is a hypothesis. Here is how to check it.">
+              <HoldoutCard rows={vm.holdout} intro={vm.holdoutIntro} />
+            </Section>
+          </div>
+        )}
+
+        <div className={`${WRAP} pt-6`}>
+          <AgentTrace
+            steps={shown?.trace}
+            summary={shown?.meta ? `${shown.meta.agentSteps} steps, ${shown.meta.qlooCalls} Qloo calls, explanations ${shown.meta.explanations.passed}/${shown.meta.explanations.total}` : undefined}
+          />
+        </div>
       </main>
+      <SafeUseNote variant="footer" />
     </>
   );
 }

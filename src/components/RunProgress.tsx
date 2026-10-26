@@ -21,22 +21,23 @@ function rowState(stages: Partial<Record<RunStage, StageState>>, ids: RunStage[]
   return states.every((s) => s.status === 'skip') ? { status: 'skip' } : { status: 'done', ms: ms || undefined };
 }
 
+/** Progress list drawn on the ink result field: light text on ink. */
 export function RunProgress({ stages, visible }: { stages: Partial<Record<RunStage, StageState>>; visible: boolean }) {
   return (
     <div aria-live="polite">
       {visible && (
-        <ul className="divide-y divide-ink/15 border-y border-ink/30 text-sm">
+        <ul className="divide-y divide-on-dark/15 border-y border-on-dark/25 text-sm text-on-dark">
           {ROWS.map((r) => {
             const st = rowState(stages, r.stages);
             const mark = !st ? '○ pending' : st.status === 'start' ? 'working' : st.status === 'done' ? '✓ done' : st.status === 'skip' ? '– skipped' : '! failed';
             return (
-              <li key={r.label} className="flex items-center gap-3 py-1.5">
-                <span className="w-24 shrink-0 tabular-nums text-ink/80">
-                  {st?.status === 'start' && <span aria-hidden className="mr-1 inline-block size-3 animate-spin rounded-full border-2 border-ink border-t-transparent align-middle" />}
+              <li key={r.label} className="flex items-center gap-3 py-2">
+                <span className={`w-24 shrink-0 tabular-nums ${st?.status === 'start' ? 'font-semibold text-tint-green' : st?.status === 'error' ? 'font-semibold text-tint-sand' : 'text-on-dark-muted'}`}>
+                  {st?.status === 'start' && <span aria-hidden className="mr-1 inline-block size-3 animate-spin rounded-full border-2 border-tint-green border-t-transparent align-middle" />}
                   {mark}
                 </span>
-                <span className="flex-1">{r.label}</span>
-                {st?.ms !== undefined && <span className="tabular-nums text-ink/70">{st.ms} ms</span>}
+                <span className="min-w-0 flex-1">{r.label}</span>
+                {st?.ms !== undefined && <span className="tabular-nums text-on-dark-muted">{st.ms} ms</span>}
               </li>
             );
           })}

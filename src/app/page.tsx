@@ -1,8 +1,9 @@
 import { CANDIDATES, DEFAULT_BUDGET, DEFAULT_MEMBERS, EXAMPLE_SEGMENTS } from '@/data/candidates';
 import { PerkFitApp } from '@/components/PerkFitApp';
-import { liveConfigured } from '@/lib/ui/serverSeams';
+import { exampleHeroPoints, liveConfigured } from '@/lib/ui/serverSeams';
 
-export default function Page() {
+export default async function Page() {
+  const heroPoints = await exampleHeroPoints();
   return (
     <PerkFitApp
       examples={EXAMPLE_SEGMENTS}
@@ -10,6 +11,7 @@ export default function Page() {
       defaultBudget={DEFAULT_BUDGET}
       defaultMembers={DEFAULT_MEMBERS}
       liveAvailable={liveConfigured()}
+      heroPoints={heroPoints}
     />
   );
 }
