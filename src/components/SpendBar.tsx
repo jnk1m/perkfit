@@ -22,7 +22,7 @@ export function SpendBar({ spend }: { spend: ViewModel['spend'] }) {
         ))}
       </div>
       <p className="mt-1 flex gap-4 text-xs text-ink/80">
-        <span><span aria-hidden className="mr-1 inline-block size-2.5 bg-ink align-middle" />Bundle</span>
+        <span><span aria-hidden className="mr-1 inline-block size-2.5 bg-ink align-middle" />Bundle (one block per perk)</span>
         <span><span aria-hidden className="mr-1 inline-block size-2.5 border border-ink bg-white/50 align-middle" />Unspent</span>
       </p>
     </div>

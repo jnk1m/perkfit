@@ -50,7 +50,7 @@ describe('Headline', () => {
   it('adds popularity rank, inclusion reason and sensitivity to the bundle', () => {
     const vm = buildVm('sample');
     for (const r of vm.bundle) {
-      if (r.popularityRank !== null) expect(r.popularityRank).toMatch(/^#\d+ of \d+ by popularity$/);
+      if (r.popularityRank !== null) expect(r.popularityRank).toMatch(/^#\d+ of \d+ by popularity \(\d\.\d\d\)$/);
       expect(r.stable).toMatch(/^in \d of 3 usage cases$/);
       expect(r.reason === null).toBe(r.tier === 'high');
     }

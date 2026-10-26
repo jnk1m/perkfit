@@ -105,7 +105,7 @@ function popularityRankOf(p: PerkScore, perks: readonly PerkScore[]): string | n
   if (p.popularity === null) return null;
   const peers = perks.filter((x) => x.domain === p.domain && x.popularity !== null);
   const rank = peers.filter((x) => (x.popularity as number) > (p.popularity as number)).length + 1;
-  return `#${rank} of ${peers.length} by popularity`;
+  return `#${rank} of ${peers.length} by popularity (${(p.popularity as number).toFixed(2)})`;
 }
 
 function whyRows(p: PerkScore, c: Candidate, score: CandidateScore | undefined, chips: InterestChip[], dataSource: DataSource): WhyRowVm[] {
@@ -228,7 +228,7 @@ export function toViewModel(a: ViewModelArgs): ViewModel {
       llm = {
         title: 'A general AI with no Qloo data',
         headline: `Picks ${cmp.diff.m - cmp.diff.n} of the same ${cmp.diff.m} ${plural(cmp.diff.m, 'perk')}, but shows no per-perk evidence.`,
-        lines: a.llm.dropped.length > 0 ? [`Over budget, trimmed by code: ${a.llm.dropped.length}`] : [],
+        lines: a.llm.dropped.length > 0 ? [`Its list ran over budget; code kept the first ${a.llm.picks.length} ${plural(a.llm.picks.length, 'perk')} that fit.`] : [],
         added: names(cmp.diff.added, nameOf),
         dropped: names(cmp.diff.dropped, nameOf),
         note: `Computed for budget ${usd(a.snapshot.input.budget)} and costs as of the run.`,
