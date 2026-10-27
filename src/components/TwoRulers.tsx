@@ -22,7 +22,7 @@ const INK: Palette = {
 };
 
 interface Layout { w: number; h: number; x0: number; x1: number; top: number; bot: number; font: number; maxName: number }
-const WIDE: Layout = { w: 560, h: 360, x0: 14, x1: 546, top: 92, bot: 290, font: 12, maxName: 40 };
+const WIDE: Layout = { w: 960, h: 340, x0: 14, x1: 946, top: 92, bot: 270, font: 12, maxName: 40 };
 const COMPACT: Layout = { w: 340, h: 330, x0: 12, x1: 328, top: 92, bot: 256, font: 11, maxName: 22 };
 
 const ease = (k: number) => 1 - Math.pow(1 - k, 3);
@@ -86,7 +86,7 @@ function Chart({ points, pal, layout, t, className }: { points: ChartPoint[]; pa
       ))}
       <g style={{ opacity: labelOpacity, transition: 'opacity 300ms ease-out', fill: pal.text, fontSize: font, fontWeight: 500 }}>
         {named.map((g, i) => {
-          const ly = bot - 26 - (i % 5) * 16;
+          const ly = bot - 26 - (i % 3) * 16;
           const anchor = 'end';
           return (
             <g key={`n-${g.p.id}`}>
